@@ -34,6 +34,17 @@ ItemTracker:SetScript("OnDragStart", ItemTracker.StartMoving)
 ItemTracker:SetScript("OnDragStop", ItemTracker.StopMovingOrSizing)
 ItemTracker:Show()
 
+
+-- Die Anzahl aller Items im Grid aktualisieren
+local function UpdateItemCount()
+    for slotName, itemID in pairs(ItemTrackerGrid) do
+        local slot = _G[slotName]  -- Hole den Slot über den globalen Namensraum
+        if slot then
+            slot.count:SetText(GetItemCount(itemID))
+        end
+    end
+end
+
 --------------------------------------------------------------------
 -- 1. Funktion LoadSavedData definieren (vor ihrer Verwendung!)
 local function LoadSavedData()
@@ -63,7 +74,18 @@ ItemTracker:SetScript("OnEvent", function(self, event, addonName)
         -- Jetzt wird LoadSavedData korrekt aufgerufen, da sie bereits definiert ist
         LoadSavedData()
     end
+    -- Events für UpdateItemCount abfragen
+    if event == "LOOT_CLOSED" or "MERCHANT_CLOSED" or "AUCTION_HOUSE_CLOSED" or "BANKFRAME_CLOSED" or "TRADE_CLOSED" then
+        UpdateItemCount()
+    end
 end)
+
+-- ItemTracker:RegisterEvent("BAG_UPDATE")
+ItemTracker:RegisterEvent("LOOT_CLOSED")
+ItemTracker:RegisterEvent("MERCHANT_CLOSED")
+ItemTracker:RegisterEvent("AUCTION_HOUSE_CLOSED")
+ItemTracker:RegisterEvent("BANKFRAME_CLOSED")
+ItemTracker:RegisterEvent("TRADE_CLOSED")
 
 --------------------------------------------------------------------
 -- Funktion, um das Item und die Anzahl in das Grid einzufügen
