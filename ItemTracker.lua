@@ -75,12 +75,12 @@ ItemTracker:SetScript("OnEvent", function(self, event, addonName)
         LoadSavedData()
     end
     -- Events für UpdateItemCount abfragen
-    if event == "LOOT_CLOSED" or "MERCHANT_CLOSED" or "AUCTION_HOUSE_CLOSED" or "BANKFRAME_CLOSED" or "TRADE_CLOSED" then
+    if event == "LOOT_OPENED" or "LOOT_CLOSED" or "MERCHANT_CLOSED" or "AUCTION_HOUSE_CLOSED" or "BANKFRAME_CLOSED" or "TRADE_CLOSED" then
         UpdateItemCount()
     end
 end)
 
--- ItemTracker:RegisterEvent("BAG_UPDATE")
+ItemTracker:RegisterEvent("LOOT_OPENED")
 ItemTracker:RegisterEvent("LOOT_CLOSED")
 ItemTracker:RegisterEvent("MERCHANT_CLOSED")
 ItemTracker:RegisterEvent("AUCTION_HOUSE_CLOSED")
