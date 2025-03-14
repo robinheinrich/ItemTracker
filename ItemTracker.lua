@@ -47,7 +47,7 @@ local function LoadSavedData()
     end
 end
 
-
+-- ADDON_LOADED Event abfangen
 ItemTracker:RegisterEvent("ADDON_LOADED")
 ItemTracker:SetScript("OnEvent", function(self, event, addonName)
     if addonName == "ItemTracker" then
@@ -60,7 +60,6 @@ ItemTracker:SetScript("OnEvent", function(self, event, addonName)
         LoadSavedData()
     end
 end)
-
 
 -- Das Item und die Anzahl in das Grid einfügen
 local function FillButtonWithData(icon, itemLink, slot)
@@ -101,6 +100,17 @@ local function CreateGrid()
             slot:EnableMouse(true)
             slot:RegisterForDrag("LeftButton")
             
+            -- Entferne das Item: Lösche Icon, Text und den Eintrag in SavedVariables/Array
+            slot:SetScript("OnClick", function(self, button)
+                if button == "RightButton" and IsShiftKeyDown() then
+                    self.icon:SetTexture(nil)
+                    self.count:SetText("")
+                    items[self:GetName()] = nil
+                    ItemTrackerGrid[self:GetName()] = nil
+                    print("Item aus " .. self:GetName() .. " entfernt!")
+                end
+            end)
+
             slot:SetScript("OnReceiveDrag", function(self)
                 local cursorType, itemLink = GetCursorInfo()
                 if cursorType == "item" and itemLink then
