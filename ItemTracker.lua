@@ -31,17 +31,13 @@ ItemTracker:SetScript("OnDragStart", ItemTracker.StartMoving)
 ItemTracker:SetScript("OnDragStop", ItemTracker.StopMovingOrSizing)
 ItemTracker:Show()
 
-
-
-
+-- Das Item und die Anzahl in das Grid einfügen
 local function FillButtonWithData(icon, itemLink, slot)
     slot.icon:SetTexture(icon)
     slot.count:SetText(GetItemCount(itemLink))
-    -- Item und Slot in SavedVariables speichern
-    -- ItemTrackerGrid[slot:GetName()] = itemLink
+    Item und Slot in SavedVariables speichern
+    ItemTrackerGrid[slot:GetName()] = itemLink
 end
-
-
 
 -- Erstelle das Grid mit Drag & Drop Unterstützung pro Slot
 local function CreateGrid()
@@ -93,7 +89,6 @@ end
 
 print("CreateGrid wird aufgerufen")
 CreateGrid()
-
 
 -- Funktion, um die Anzahl eines bestimmten Items zu ermitteln (bleibt unverändert)
 local function GetItemCount(itemID)
