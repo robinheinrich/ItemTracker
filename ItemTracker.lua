@@ -25,7 +25,19 @@ ItemTracker:EnableMouse(true)
 ItemTracker:SetMovable(true)
 ItemTracker:RegisterForDrag("LeftButton")
 ItemTracker:SetScript("OnDragStart", ItemTracker.StartMoving)
-ItemTracker:SetScript("OnDragStop", ItemTracker.StopMovingOrSizing)
+ItemTracker:SetScript("OnDragStop", function(self)
+    self:StopMovingOrSizing()
+    -- Abfragen der aktuellen Position
+    local point, relativeTo, relativePoint, xOffset, yOffset = self:GetPoint(1)
+  
+    ItemTrackerConfig.framePosition = {
+        point = point,
+        relativePoint = relativePoint,
+        x = xOffset,
+        y = yOffset
+    }
+end)
+
 ItemTracker:Show()
 
 
@@ -66,7 +78,13 @@ ItemTracker:SetScript("OnEvent", function(self, event, addonName)
         if ItemTrackerConfig == nil then
             ItemTrackerConfig = {}
         end
-        -- Jetzt wird LoadSavedData korrekt aufgerufen, da sie bereits definiert ist
+        
+        -- Position des Frames laden
+        if ItemTrackerConfig.framePosition then
+            ItemTracker:ClearAllPoints()
+            ItemTracker:SetPoint(ItemTrackerConfig.framePosition.point, UIParent, ItemTrackerConfig.framePosition.relativePoint, ItemTrackerConfig.framePosition.x, ItemTrackerConfig.framePosition.y)
+        end
+        -- Gespeicherte Daten laden
         LoadSavedData()
     end
     -- Events für UpdateItemCount abfragen
