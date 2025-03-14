@@ -50,7 +50,7 @@ local function LoadSavedData()
                 slot.icon:SetTexture(itemTexture)
             end
             slot.count:SetText(GetItemCount(itemID))
-            -- items[self:GetName()] = itemLink
+            items[slot:GetName()] = itemID
         end
     end
 end
