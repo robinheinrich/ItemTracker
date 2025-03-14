@@ -5,7 +5,7 @@
 -- Konstanten und Variablen
 local GRID_SIZE_X = 10  -- Anzahl der Spalten
 local GRID_SIZE_Y = 2   -- Anzahl der Zeilen
-local ICON_SIZE = 35    -- Größe der Icons
+local ICON_SIZE = 35    -- Größe der Icons (Default 35)
 local items = {}        -- Tabelle für die Items
 
 -- Hauptframe erstellen
@@ -43,6 +43,21 @@ end)
 
 ItemTracker:Show()
 
+-- Registriere den Slash-Befehl "/IT"
+SLASH_ITEMTRACKER1 = "/IT"
+SlashCmdList["ITEMTRACKER"] = function(msg)
+    -- Suche nach einem Muster wie "-size:44" im eingegebenen Text
+    local newSize = string.match(msg, "-size:(%d+)")
+    if newSize then
+        newSize = tonumber(newSize)
+        ItemTracker:SetSize(newSize * GRID_SIZE_X + 65, newSize * GRID_SIZE_Y + 25)
+        ICON_SIZE = newSize
+        print("Neuer Size-Wert: " .. newSize)
+        ItemTrackerConfig.iconSize = newSize
+    else
+        print("Ungültiger Befehl. Beispiel: /IT -size:44")
+    end
+end
 
 -- Die Anzahl aller Items im Grid aktualisieren
 local function UpdateItemCount()
@@ -82,13 +97,20 @@ ItemTracker:SetScript("OnEvent", function(self, event, addonName)
             ItemTrackerConfig = {}
         end
         
+        -- Icon Size laden
+        if ItemTrackerConfig.iconSize then
+            ICON_SIZE = ItemTrackerConfig.iconSize
+        end
+
         -- Position des Frames laden
         if ItemTrackerConfig.framePosition then
             ItemTracker:ClearAllPoints()
             ItemTracker:SetPoint(ItemTrackerConfig.framePosition.point, UIParent, ItemTrackerConfig.framePosition.relativePoint, ItemTrackerConfig.framePosition.x, ItemTrackerConfig.framePosition.y)
         end
+
         -- Gespeicherte Daten laden
         LoadSavedData()
+
     end
     -- Events für UpdateItemCount abfragen
     if event == "LOOT_OPENED" or "LOOT_CLOSED" or "MERCHANT_CLOSED" or "AUCTION_HOUSE_CLOSED" or "BANKFRAME_CLOSED" or "TRADE_CLOSED" then
