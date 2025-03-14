@@ -5,8 +5,8 @@ local ICON_SIZE = 35
 local items = {}
 
 -- SavedVariabels
-ItemTrackerGrid = {}
-ItemTrackerConfig = {}
+-- ItemTrackerGrid = {}
+-- ItemTrackerConfig = {}
 
 
 -- Hauptframe erstellen
@@ -31,11 +31,24 @@ ItemTracker:SetScript("OnDragStart", ItemTracker.StartMoving)
 ItemTracker:SetScript("OnDragStop", ItemTracker.StopMovingOrSizing)
 ItemTracker:Show()
 
+ItemTracker:RegisterEvent("ADDON_LOADED")
+ItemTracker:SetScript("OnEvent", function(self, event, addonName)
+    if addonName == "ItemTracker" then
+        if ItemTrackerGrid == nil then
+            ItemTrackerGrid = {}
+        end
+        if ItemTrackerConfig == nil then
+            ItemTrackerConfig = {}
+        end
+        print ("ItemTracker geladen!")
+        end
+end)
+
 -- Das Item und die Anzahl in das Grid einfügen
 local function FillButtonWithData(icon, itemLink, slot)
     slot.icon:SetTexture(icon)
     slot.count:SetText(GetItemCount(itemLink))
-    Item und Slot in SavedVariables speichern
+    -- Item und Slot in SavedVariables speichern
     ItemTrackerGrid[slot:GetName()] = itemLink
 end
 
@@ -86,8 +99,6 @@ local function CreateGrid()
     end
     
 end
-
-print("CreateGrid wird aufgerufen")
 CreateGrid()
 
 -- Funktion, um die Anzahl eines bestimmten Items zu ermitteln (bleibt unverändert)
