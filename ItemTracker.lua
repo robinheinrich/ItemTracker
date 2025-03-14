@@ -88,6 +88,7 @@ local function FillButtonWithData(icon, itemLink, slot)
     slot.count:SetText(GetItemCount(itemLink))
     -- Speichere den Slot-Eintrag in den SavedVariables
     ItemTrackerGrid[slot:GetName()] = itemLink
+    items[slot:GetName()] = itemLink
 end
 
 --------------------------------------------------------------------
@@ -122,14 +123,31 @@ local function CreateGrid()
             slot:RegisterForDrag("LeftButton")
             slot:RegisterForClicks("AnyUp")
             
+            -- Tooltip Handler onEnter und onLeave
+            slot:SetScript("OnEnter", function(self)
+                if items[self:GetName()] then  -- Prüfe, ob ein Item zugewiesen ist (oder alternativ ItemTrackerGrid)
+                    local itemLink = items[self:GetName()]
+                    local itemName = select(1, GetItemInfo(itemLink))
+                    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+                    GameTooltip:SetText(itemName or "Kein Item gefunden", 1, 1, 1)
+                    GameTooltip:Show()
+                end
+            end)
+            slot:SetScript("OnLeave", function(self)
+                GameTooltip:Hide()
+            end)
+
             -- OnClick zum Entfernen eines Items (Shift + Rechtsklick)
             slot:SetScript("OnClick", function(self, button)
                 if button == "RightButton" and IsShiftKeyDown() then
+                    local itemLink = items[self:GetName()]
+                    local itemName = select(1, GetItemInfo(itemLink))
+                    print(ItemName .. " aus " .. self:GetName() .. " entfernt!")
                     self.icon:SetTexture(nil)
                     self.count:SetText("")
                     items[self:GetName()] = nil
                     ItemTrackerGrid[self:GetName()] = nil
-                    print("Item aus " .. self:GetName() .. " entfernt!")
+                    
                 end
             end)
 
