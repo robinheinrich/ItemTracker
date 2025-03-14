@@ -1,0 +1,11 @@
+## Interface: 110100
+
+## Title: ItemTracker
+## Notes: Tracks items in your bags and displays them on your action bars.
+## Version: 0.1
+## Author: Rob
+
+## X-Category: Action Bars
+
+## SavedVariables: ItemTrackerGrid, ItemTrackerConfig
+ItemTracker.lua
