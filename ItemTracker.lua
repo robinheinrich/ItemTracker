@@ -1,12 +1,16 @@
+-- ToDo: Itemanzahl wird noch nicht aktualisiert.
+--      - Event: Loot
+--      - Event: Händlerverkauf
+--      - Event: Auktionshaus öffnen / schließen
+--      - Event: Bank schließen
+--      - Event: Handelsfenster schließen
+--      Alle diese Events feuern die Funktion UpdateItemCount ab, die die Anzahl der Items in den Slots aktualisiert.
+
 -- Konstanten und Variablen
 local GRID_SIZE_X = 10
 local GRID_SIZE_Y = 2
 local ICON_SIZE = 35
 local items = {}
-
--- SavedVariables (sollten in der TOC deklariert sein)
--- ItemTrackerGrid = {}
--- ItemTrackerConfig = {}
 
 -- Hauptframe erstellen
 local ItemTracker = CreateFrame("Frame", "ItemTrackerFrame", UIParent, "BackdropTemplate")
