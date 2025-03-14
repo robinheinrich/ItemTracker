@@ -4,10 +4,9 @@ local GRID_SIZE_Y = 2
 local ICON_SIZE = 35
 local items = {}
 
--- SavedVariabels
+-- SavedVariables (sollten in der TOC deklariert sein)
 -- ItemTrackerGrid = {}
 -- ItemTrackerConfig = {}
-
 
 -- Hauptframe erstellen
 local ItemTracker = CreateFrame("Frame", "ItemTrackerFrame", UIParent, "BackdropTemplate")
@@ -31,12 +30,11 @@ ItemTracker:SetScript("OnDragStart", ItemTracker.StartMoving)
 ItemTracker:SetScript("OnDragStop", ItemTracker.StopMovingOrSizing)
 ItemTracker:Show()
 
-
-
--- Die gespeicherten Items in das Grid laden
+--------------------------------------------------------------------
+-- 1. Funktion LoadSavedData definieren (vor ihrer Verwendung!)
 local function LoadSavedData()
     for slotName, itemID in pairs(ItemTrackerGrid) do
-        local slot = _G[slotName]  -- Slot über den globalen Namensraum holen
+        local slot = _G[slotName]  -- Hole den Slot über den globalen Namensraum
         if slot then
             local itemName, _, _, _, _, _, _, _, _, itemTexture = GetItemInfo(itemID)
             if itemTexture then
@@ -47,6 +45,7 @@ local function LoadSavedData()
     end
 end
 
+--------------------------------------------------------------------
 -- ADDON_LOADED Event abfangen
 ItemTracker:RegisterEvent("ADDON_LOADED")
 ItemTracker:SetScript("OnEvent", function(self, event, addonName)
@@ -57,18 +56,21 @@ ItemTracker:SetScript("OnEvent", function(self, event, addonName)
         if ItemTrackerConfig == nil then
             ItemTrackerConfig = {}
         end
+        -- Jetzt wird LoadSavedData korrekt aufgerufen, da sie bereits definiert ist
         LoadSavedData()
     end
 end)
 
--- Das Item und die Anzahl in das Grid einfügen
+--------------------------------------------------------------------
+-- Funktion, um das Item und die Anzahl in das Grid einzufügen
 local function FillButtonWithData(icon, itemLink, slot)
     slot.icon:SetTexture(icon)
     slot.count:SetText(GetItemCount(itemLink))
-    -- Item und Slot in SavedVariables speichern
+    -- Speichere den Slot-Eintrag in den SavedVariables
     ItemTrackerGrid[slot:GetName()] = itemLink
 end
 
+--------------------------------------------------------------------
 -- Erstelle das Grid mit Drag & Drop Unterstützung pro Slot
 local function CreateGrid()
     for row = 1, GRID_SIZE_Y do
@@ -91,16 +93,16 @@ local function CreateGrid()
             slot.icon:SetAllPoints()
             slot.icon:SetTexture(nil)
             
-            -- Hier wird der Text hinzugefügt
+            -- Füge den Text hinzu
             slot.count = slot:CreateFontString(nil, "OVERLAY", "GameFontNormal")
             slot.count:SetPoint("BOTTOMRIGHT", slot, "BOTTOMRIGHT", 0, 5)
             slot.count:SetTextColor(1, 1, 1, 1)
             
-            -- Weitere Event-Registrierungen wie OnReceiveDrag etc.
             slot:EnableMouse(true)
             slot:RegisterForDrag("LeftButton")
+            slot:RegisterForClicks("AnyUp")
             
-            -- Entferne das Item: Lösche Icon, Text und den Eintrag in SavedVariables/Array
+            -- OnClick zum Entfernen eines Items (Shift + Rechtsklick)
             slot:SetScript("OnClick", function(self, button)
                 if button == "RightButton" and IsShiftKeyDown() then
                     self.icon:SetTexture(nil)
@@ -116,22 +118,19 @@ local function CreateGrid()
                 if cursorType == "item" and itemLink then
                     local itemName, _, _, _, _, _, _, _, _, itemTexture = GetItemInfo(itemLink)
                     if itemTexture then
-                        -- self.icon:SetTexture(itemTexture)
                         FillButtonWithData(itemTexture, itemLink, self)
                     end
                     items[self:GetName()] = itemLink
-                    -- print("Item '" .. (itemName or "Unbekannt") .. "' wurde in " .. self:GetName() .. " abgelegt!")
                     ClearCursor()
                 end
             end)
         end
-
     end
-  
 end
 CreateGrid()
 
--- Funktion, um die Anzahl eines bestimmten Items zu ermitteln (bleibt unverändert)
+--------------------------------------------------------------------
+-- Funktion, um die Anzahl eines bestimmten Items zu ermitteln
 local function GetItemCount(itemID)
     local count = 0
     for bag = 0, NUM_BAG_SLOTS do
