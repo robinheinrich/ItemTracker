@@ -1,10 +1,4 @@
--- ToDo: Itemanzahl wird noch nicht aktualisiert.
---      - Event: Loot
---      - Event: Händlerverkauf
---      - Event: Auktionshaus öffnen / schließen
---      - Event: Bank schließen
---      - Event: Handelsfenster schließen
---      Alle diese Events feuern die Funktion UpdateItemCount ab, die die Anzahl der Items in den Slots aktualisiert.
+-- ToDo: Tooltip hinzufügen, um den Namen des Items anzuzeigen
 
 -- Konstanten und Variablen
 local GRID_SIZE_X = 10
