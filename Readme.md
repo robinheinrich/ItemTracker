@@ -1,2 +1,2 @@
 # ItemTracker - Ein Addon für das Tracken von Gegenständen
-Es zeigt in einem Grid Gegenstände an die mit der Maus reingezogen werden können und ermittelt die Anzahl im Rucksack.
+Es zeigt in einem Grid Gegenstände und deren Anzahl im Gepäck an. Die Items können mit der Maus reingezogen werden.
