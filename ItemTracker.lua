@@ -45,11 +45,12 @@ local function LoadSavedData()
     for slotName, itemID in pairs(ItemTrackerGrid) do
         local slot = _G[slotName]  -- Hole den Slot über den globalen Namensraum
         if slot then
-            local itemName, _, _, _, _, _, _, _, _, itemTexture = GetItemInfo(itemID)
+            local itemName, itemLink, _, _, _, _, _, _, _, itemTexture = GetItemInfo(itemID)
             if itemTexture then
                 slot.icon:SetTexture(itemTexture)
             end
             slot.count:SetText(GetItemCount(itemID))
+            -- items[self:GetName()] = itemLink
         end
     end
 end
@@ -140,9 +141,6 @@ local function CreateGrid()
             -- OnClick zum Entfernen eines Items (Shift + Rechtsklick)
             slot:SetScript("OnClick", function(self, button)
                 if button == "RightButton" and IsShiftKeyDown() then
-                    local itemLink = items[self:GetName()]
-                    local itemName = select(1, GetItemInfo(itemLink))
-                    print(ItemName .. " aus " .. self:GetName() .. " entfernt!")
                     self.icon:SetTexture(nil)
                     self.count:SetText("")
                     items[self:GetName()] = nil
