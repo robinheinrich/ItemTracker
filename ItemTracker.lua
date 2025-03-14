@@ -31,6 +31,23 @@ ItemTracker:SetScript("OnDragStart", ItemTracker.StartMoving)
 ItemTracker:SetScript("OnDragStop", ItemTracker.StopMovingOrSizing)
 ItemTracker:Show()
 
+
+
+-- Die gespeicherten Items in das Grid laden
+local function LoadSavedData()
+    for slotName, itemID in pairs(ItemTrackerGrid) do
+        local slot = _G[slotName]  -- Slot über den globalen Namensraum holen
+        if slot then
+            local itemName, _, _, _, _, _, _, _, _, itemTexture = GetItemInfo(itemID)
+            if itemTexture then
+                slot.icon:SetTexture(itemTexture)
+            end
+            slot.count:SetText(GetItemCount(itemID))
+        end
+    end
+end
+
+
 ItemTracker:RegisterEvent("ADDON_LOADED")
 ItemTracker:SetScript("OnEvent", function(self, event, addonName)
     if addonName == "ItemTracker" then
@@ -40,9 +57,10 @@ ItemTracker:SetScript("OnEvent", function(self, event, addonName)
         if ItemTrackerConfig == nil then
             ItemTrackerConfig = {}
         end
-        print ("ItemTracker geladen!")
-        end
+        LoadSavedData()
+    end
 end)
+
 
 -- Das Item und die Anzahl in das Grid einfügen
 local function FillButtonWithData(icon, itemLink, slot)
@@ -82,6 +100,7 @@ local function CreateGrid()
             -- Weitere Event-Registrierungen wie OnReceiveDrag etc.
             slot:EnableMouse(true)
             slot:RegisterForDrag("LeftButton")
+            
             slot:SetScript("OnReceiveDrag", function(self)
                 local cursorType, itemLink = GetCursorInfo()
                 if cursorType == "item" and itemLink then
@@ -96,8 +115,9 @@ local function CreateGrid()
                 end
             end)
         end
+
     end
-    
+  
 end
 CreateGrid()
 
