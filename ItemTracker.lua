@@ -1,13 +1,16 @@
--- ToDo: Tooltip hinzufügen, um den Namen des Items anzuzeigen
+-- Written by: Rob
+-- Description: Ein einfaches Addon, um Items mit der Anzahl in einem Grid anzuzeigen
+-- Version: v1.0
 
 -- Konstanten und Variablen
-local GRID_SIZE_X = 10
-local GRID_SIZE_Y = 2
-local ICON_SIZE = 35
-local items = {}
+local GRID_SIZE_X = 10  -- Anzahl der Spalten
+local GRID_SIZE_Y = 2   -- Anzahl der Zeilen
+local ICON_SIZE = 35    -- Größe der Icons
+local items = {}        -- Tabelle für die Items
 
 -- Hauptframe erstellen
 local ItemTracker = CreateFrame("Frame", "ItemTrackerFrame", UIParent, "BackdropTemplate")
+-- Größe und Position des Frames relativ zu der Größe der Buttons
 ItemTracker:SetSize(ICON_SIZE * GRID_SIZE_X + 65, ICON_SIZE * GRID_SIZE_Y + 25)
 ItemTracker:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
 
