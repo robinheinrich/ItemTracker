@@ -8,3 +8,6 @@ Es zeigt in einem Grid Gegenstände und deren Anzahl im Gepäck an. Die Items k�
 Anstelle von 00 kann die Größe der Buttons geändert werden. Standard ist 35. Eingestellte Größe sollte nicht kleiner als 20 sein.
 * /IT -ds
 Setzt die Größe wieder auf Standard.
+
+# Bekannte Probleme
+Die Anzahl wird nicht immer zuverlässig bei jedem Loot von Erzen und Pflanzen aktualisiert. 
