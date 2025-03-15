@@ -1,4 +1,6 @@
 ## ItemTracker - Ein Addon für das Tracken von Gegenständen
+# Version: 1.0
+# Autor: Robin Heinrich
 
 # Description
 Es zeigt in einem Grid Gegenstände und deren Anzahl im Gepäck an. Die Items können mit der Maus reingezogen werden. Mit Shift-Rechtsklick auf ein Item im Grid wird dieses aus dem Grid entfernt.
