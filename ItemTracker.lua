@@ -58,7 +58,7 @@ local function UpdateItemCount()
 end
 
 --------------------------------------------------------------------
--- 1. Funktion LoadSavedData definieren (vor ihrer Verwendung!)
+-- Funktion, um die gespeicherten Daten zu laden
 local function LoadSavedData()
     for slotName, itemID in pairs(ItemTrackerGrid) do
         local slot = _G[slotName]  -- Hole den Slot über den globalen Namensraum
@@ -74,10 +74,11 @@ local function LoadSavedData()
 end
 
 --------------------------------------------------------------------
--- ADDON_LOADED Event abfangen
-ItemTracker:RegisterEvent("ADDON_LOADED")
+-- Events abfangen und verarbeiten
 ItemTracker:SetScript("OnEvent", function(self, event, addonName)
+    -- Prüfe, ob das Addon "ItemTracker" geladen wurde
     if addonName == "ItemTracker" then
+        -- Initialisiere die SavedVariables
         if ItemTrackerGrid == nil then
             ItemTrackerGrid = {}
         end
@@ -106,11 +107,13 @@ ItemTracker:SetScript("OnEvent", function(self, event, addonName)
     end
 end)
 
-ItemTracker:RegisterEvent("LOOT_OPENED")
-ItemTracker:RegisterEvent("LOOT_CLOSED")
-ItemTracker:RegisterEvent("MERCHANT_CLOSED")
+-- Events registrieren
+ItemTracker:RegisterEvent("ADDON_LOADED")
 ItemTracker:RegisterEvent("AUCTION_HOUSE_CLOSED")
 ItemTracker:RegisterEvent("BANKFRAME_CLOSED")
+ItemTracker:RegisterEvent("LOOT_CLOSED")
+ItemTracker:RegisterEvent("LOOT_OPENED")
+ItemTracker:RegisterEvent("MERCHANT_CLOSED")
 ItemTracker:RegisterEvent("TRADE_CLOSED")
 
 --------------------------------------------------------------------
@@ -165,11 +168,12 @@ local function CreateGrid()
                     GameTooltip:Show()
                 end
             end)
+            -- OnLeave Event Handler (Frame)
             slot:SetScript("OnLeave", function(self)
                 GameTooltip:Hide()
             end)
 
-            -- OnClick zum Entfernen eines Items (Shift + Rechtsklick)
+            -- OnClick Handler: Entfernen eines Items (Shift + Rechtsklick)
             slot:SetScript("OnClick", function(self, button)
                 if button == "RightButton" and IsShiftKeyDown() then
                     self.icon:SetTexture(nil)
@@ -180,6 +184,7 @@ local function CreateGrid()
                 end
             end)
 
+            -- Receive Drag Event für die Buttons
             slot:SetScript("OnReceiveDrag", function(self)
                 local cursorType, itemLink = GetCursorInfo()
                 if cursorType == "item" and itemLink then
@@ -197,7 +202,7 @@ end
 CreateGrid()
 
 --------------------------------------------------------------------
--- Funktion, um die Anzahl eines bestimmten Items zu ermitteln
+-- Funktion, um die Anzahl eines bestimmten Items anhand der itemID zu ermitteln
 local function GetItemCount(itemID)
     local count = 0
     for bag = 0, NUM_BAG_SLOTS do
@@ -223,8 +228,9 @@ SlashCmdList["ITEMTRACKER"] = function(msg)
     if newSize then
         newSize = tonumber(newSize)
         ItemTracker:SetSize(newSize * GRID_SIZE_X + 65, newSize * GRID_SIZE_Y + 25)
+        local oldSize = ICON_SIZE
         ICON_SIZE = newSize
-        print("Neuer Size-Wert: " .. newSize)
+        print("Size-Wert auf " .. newSize .. " geändert. (War " .. oldSize .. ")")
         ItemTrackerConfig.iconSize = newSize
 
         -- Alle Buttons an Größe sowie Position anpassen:
