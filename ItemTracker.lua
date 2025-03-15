@@ -5,8 +5,11 @@
 -- Konstanten und Variablen
 local GRID_SIZE_X = 10  -- Anzahl der Spalten
 local GRID_SIZE_Y = 2   -- Anzahl der Zeilen
-local ICON_SIZE = 35    -- Größe der Icons (Default 35)
+local ICON_SIZE = ItemTrackerConfig.iconSize    -- Größe der Icons
+ItemTrackerConfig.DefaultButtonSize = 35    -- Default Button Size
 local items = {}        -- Tabelle für die Items
+
+
 
 -- Hauptframe erstellen
 local ItemTracker = CreateFrame("Frame", "ItemTrackerFrame", UIParent, "BackdropTemplate")
@@ -248,5 +251,12 @@ SlashCmdList["ITEMTRACKER"] = function(msg)
         
     else
         print("Ungültiger Befehl. Beispiel: /IT -size:44")
+    end
+
+    local settoDefaultSize = string.match(msg, "-ds")
+    if settoDefaultSize then
+        ItemTracker:SetSize(ItemTrackerConfig.DefaultButtonSize * GRID_SIZE_X + 65, ItemTrackerConfig.DefaultButtonSize * GRID_SIZE_Y + 25)
+        print("Größe auf Standardgröße zurückgesetzt.")
+        ItemTrackerConfig.iconSize = ItemTrackerConfig.DefaultButtonSize
     end
 end
