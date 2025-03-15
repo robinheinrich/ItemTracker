@@ -43,27 +43,15 @@ end)
 
 ItemTracker:Show()
 
--- Registriere den Slash-Befehl "/IT"
-SLASH_ITEMTRACKER1 = "/IT"
-SlashCmdList["ITEMTRACKER"] = function(msg)
-    -- Suche nach einem Muster wie "-size:44" im eingegebenen Text
-    local newSize = string.match(msg, "-size:(%d+)")
-    if newSize then
-        newSize = tonumber(newSize)
-        ItemTracker:SetSize(newSize * GRID_SIZE_X + 65, newSize * GRID_SIZE_Y + 25)
-        ICON_SIZE = newSize
-        print("Neuer Size-Wert: " .. newSize)
-        ItemTrackerConfig.iconSize = newSize
-    else
-        print("Ungültiger Befehl. Beispiel: /IT -size:44")
-    end
-end
-
--- Die Anzahl aller Items im Grid aktualisieren
+-- Die Items im Grid aktualisieren
 local function UpdateItemCount()
     for slotName, itemID in pairs(ItemTrackerGrid) do
         local slot = _G[slotName]  -- Hole den Slot über den globalen Namensraum
         if slot then
+            local itemName, itemLink, _, _, _, _, _, _, _, itemTexture = GetItemInfo(itemID)
+            if itemTexture then
+                slot.icon:SetTexture(itemTexture)
+            end
             slot.count:SetText(GetItemCount(itemID))
         end
     end
@@ -224,4 +212,35 @@ local function GetItemCount(itemID)
         end
     end
     return count
+end
+
+
+-- Registriere den Slash-Befehl "/IT"
+SLASH_ITEMTRACKER1 = "/IT"
+SlashCmdList["ITEMTRACKER"] = function(msg)
+    -- ButtonSize Befehl
+    local newSize = string.match(msg, "-size:(%d+)")
+    if newSize then
+        newSize = tonumber(newSize)
+        ItemTracker:SetSize(newSize * GRID_SIZE_X + 65, newSize * GRID_SIZE_Y + 25)
+        ICON_SIZE = newSize
+        print("Neuer Size-Wert: " .. newSize)
+        ItemTrackerConfig.iconSize = newSize
+
+        -- Alle Buttons an Größe sowie Position anpassen:
+        for i = 1, (GRID_SIZE_X * GRID_SIZE_Y) do
+            local btn = _G["ItemSlot" .. i]
+            if btn then
+                btn:SetSize(newSize, newSize)
+                -- Berechne die neue Position: Bestimme Zeile und Spalte
+                local row = math.floor((i - 1) / GRID_SIZE_X) + 1
+                local col = ((i - 1) % GRID_SIZE_X) + 1
+                btn:ClearAllPoints()
+                btn:SetPoint("TOPLEFT", ItemTracker, "TOPLEFT", (col - 1) * (newSize + 5) + 10, -((row - 1) * (newSize + 5) + 10))
+            end
+        end
+        
+    else
+        print("Ungültiger Befehl. Beispiel: /IT -size:44")
+    end
 end
