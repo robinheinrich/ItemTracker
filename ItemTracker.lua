@@ -5,8 +5,7 @@
 -- Konstanten und Variablen
 local GRID_SIZE_X = 10  -- Anzahl der Spalten
 local GRID_SIZE_Y = 2   -- Anzahl der Zeilen
-local ICON_SIZE = ItemTrackerConfig.iconSize    -- Größe der Icons
-ItemTrackerConfig.DefaultButtonSize = 35    -- Default Button Size
+local ICON_SIZE = 35    -- Größe der Icons
 local items = {}        -- Tabelle für die Items
 
 
