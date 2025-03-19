@@ -95,10 +95,10 @@ ItemTracker:SetScript("OnEvent", function(self, event, addonName)
     -- Prüfe, ob das Addon "ItemTracker" geladen wurde
     if addonName == "ItemTracker" then
         -- Initialisiere die SavedVariables
-        if ItemTrackerGrid[characterID] == nil then
+        if not ItemTrackerGrid[characterID] then
             ItemTrackerGrid[characterID] = {}
         end
-        if ItemTrackerConfig[characterID] == nil then
+        if not ItemTrackerConfig[characterID] then
             ItemTrackerConfig[characterID] = {}
         end
         
