@@ -9,6 +9,12 @@ local ICON_SIZE = 35    -- Größe der Icons
 local items = {}        -- Tabelle für die Items
 
 
+-- CharacerID und Realm für SavedVariables erstellen
+local characterName, realm = UnitFullName("player")
+if not realm then
+    realm = GetRealmName()
+end
+characterID = characterName .. "-" .. realm
 
 -- Hauptframe erstellen
 local ItemTracker = CreateFrame("Frame", "ItemTrackerFrame", UIParent, "BackdropTemplate")
@@ -35,6 +41,7 @@ ItemTracker:SetScript("OnDragStop", function(self)
     -- Abfragen der aktuellen Position
     local point, relativeTo, relativePoint, xOffset, yOffset = self:GetPoint(1)
   
+    -- ToDo Config an andere Position setzen
     ItemTrackerConfig.framePosition = {
         point = point,
         relativePoint = relativePoint,
@@ -62,7 +69,7 @@ end
 --------------------------------------------------------------------
 -- Funktion, um die gespeicherten Daten zu laden
 local function LoadSavedData()
-    for slotName, itemID in pairs(ItemTrackerGrid) do
+    for slotName, itemID in pairs(ItemTrackerGrid[characterID]) do
         local slot = _G[slotName]  -- Hole den Slot über den globalen Namensraum
         if slot then
             local itemName, itemLink, _, _, _, _, _, _, _, itemTexture = GetItemInfo(itemID)
@@ -81,22 +88,22 @@ ItemTracker:SetScript("OnEvent", function(self, event, addonName)
     -- Prüfe, ob das Addon "ItemTracker" geladen wurde
     if addonName == "ItemTracker" then
         -- Initialisiere die SavedVariables
-        if ItemTrackerGrid == nil then
-            ItemTrackerGrid = {}
+        if ItemTrackerGrid[characterID] == nil then
+            ItemTrackerGrid[characterID] = {}
         end
-        if ItemTrackerConfig == nil then
-            ItemTrackerConfig = {}
+        if ItemTrackerConfig[characterID] == nil then
+            ItemTrackerConfig[characterID] = {}
         end
         
         -- Icon Size laden
-        if ItemTrackerConfig.iconSize then
-            ICON_SIZE = ItemTrackerConfig.iconSize
+        if ItemTrackerConfig[characterID].iconSize then
+            ICON_SIZE = ItemTrackerConfig[characterID].iconSize
         end
 
         -- Position des Frames laden
-        if ItemTrackerConfig.framePosition then
+        if ItemTrackerConfig[characterID].framePosition then
             ItemTracker:ClearAllPoints()
-            ItemTracker:SetPoint(ItemTrackerConfig.framePosition.point, UIParent, ItemTrackerConfig.framePosition.relativePoint, ItemTrackerConfig.framePosition.x, ItemTrackerConfig.framePosition.y)
+            ItemTracker:SetPoint(ItemTrackerConfig[characterID].framePosition.point, UIParent, ItemTrackerConfig[characterID].framePosition.relativePoint, ItemTrackerConfig[characterID].framePosition.x, ItemTrackerConfig[characterID].framePosition.y)
         end
 
         -- Gespeicherte Daten laden
@@ -124,7 +131,7 @@ local function FillButtonWithData(icon, itemLink, slot)
     slot.icon:SetTexture(icon)
     slot.count:SetText(GetItemCount(itemLink))
     -- Speichere den Slot-Eintrag in den SavedVariables
-    ItemTrackerGrid[slot:GetName()] = itemLink
+    ItemTrackerGrid[characterID][slot:GetName()] = itemLink
     items[slot:GetName()] = itemLink
 end
 
@@ -181,7 +188,7 @@ local function CreateGrid()
                     self.icon:SetTexture(nil)
                     self.count:SetText("")
                     items[self:GetName()] = nil
-                    ItemTrackerGrid[self:GetName()] = nil
+                    ItemTrackerGrid[characterID][self:GetName()] = nil
                     
                 end
             end)
@@ -233,7 +240,7 @@ SlashCmdList["ITEMTRACKER"] = function(msg)
         local oldSize = ICON_SIZE
         ICON_SIZE = newSize
         print("Size-Wert auf " .. newSize .. " geändert. (War " .. oldSize .. ")")
-        ItemTrackerConfig.iconSize = newSize
+        ItemTrackerConfig[characterID].iconSize = newSize
 
         -- Alle Buttons an Größe sowie Position anpassen:
         for i = 1, (GRID_SIZE_X * GRID_SIZE_Y) do
@@ -254,8 +261,8 @@ SlashCmdList["ITEMTRACKER"] = function(msg)
 
     local settoDefaultSize = string.match(msg, "-ds")
     if settoDefaultSize then
-        ItemTracker:SetSize(ItemTrackerConfig.DefaultButtonSize * GRID_SIZE_X + 65, ItemTrackerConfig.DefaultButtonSize * GRID_SIZE_Y + 25)
+        ItemTracker:SetSize(ItemTrackerConfig[characterID].DefaultButtonSize * GRID_SIZE_X + 65, ItemTrackerConfig[characterID].DefaultButtonSize * GRID_SIZE_Y + 25)
         print("Größe auf Standardgröße zurückgesetzt.")
-        ItemTrackerConfig.iconSize = ItemTrackerConfig.DefaultButtonSize
+        ItemTrackerConfig[characterID].iconSize = ItemTrackerConfig[characterID].DefaultButtonSize
     end
 end
