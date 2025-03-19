@@ -8,6 +8,13 @@ local GRID_SIZE_Y = 2   -- Anzahl der Zeilen
 local ICON_SIZE = 35    -- Größe der Icons
 local items = {}        -- Tabelle für die Items
 
+-- SavedVAriables erstellen, wenn sie noch nicht existieren
+if not ItemTrackerGrid then
+    ItemTrackerGrid = {}
+end
+if not ItemTrackerConfig then
+    ItemTrackerConfig = {}
+end
 
 -- CharacerID und Realm für SavedVariables erstellen
 local characterName, realm = UnitFullName("player")
@@ -42,7 +49,7 @@ ItemTracker:SetScript("OnDragStop", function(self)
     local point, relativeTo, relativePoint, xOffset, yOffset = self:GetPoint(1)
   
     -- ToDo Config an andere Position setzen
-    ItemTrackerConfig.framePosition = {
+    ItemTrackerConfig[characterID].framePosition = {
         point = point,
         relativePoint = relativePoint,
         x = xOffset,
@@ -54,7 +61,7 @@ ItemTracker:Show()
 
 -- Die Items im Grid aktualisieren
 local function UpdateItemCount()
-    for slotName, itemID in pairs(ItemTrackerGrid) do
+    for slotName, itemID in pairs(ItemTrackerGrid[characterID]) do
         local slot = _G[slotName]  -- Hole den Slot über den globalen Namensraum
         if slot then
             local itemName, itemLink, _, _, _, _, _, _, _, itemTexture = GetItemInfo(itemID)
@@ -111,7 +118,7 @@ ItemTracker:SetScript("OnEvent", function(self, event, addonName)
 
     end
     -- Events für UpdateItemCount abfragen
-    if event == "LOOT_OPENED" or "LOOT_CLOSED" or "MERCHANT_CLOSED" or "AUCTION_HOUSE_CLOSED" or "BANKFRAME_CLOSED" or "TRADE_CLOSED" then
+    if event == "LOOT_OPENED" or event == "LOOT_CLOSED" or event == "MERCHANT_CLOSED" or event == "AUCTION_HOUSE_CLOSED" or event == "BANKFRAME_CLOSED" or event == "TRADE_CLOSED" then
         UpdateItemCount()
     end
 end)
