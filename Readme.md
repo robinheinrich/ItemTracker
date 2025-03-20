@@ -1,5 +1,5 @@
 ## ItemTracker - Ein Addon für das Tracken von Gegenständen
-# Version: 1.0
+# Version: 1.1
 # Autor: Robin Heinrich
 
 # Description
@@ -12,4 +12,4 @@ Anstelle von 00 kann die Größe der Buttons geändert werden. Standard ist 35. 
 Setzt die Größe wieder auf Standard.
 
 # Bekannte Probleme
-Die Anzahl wird nicht immer zuverlässig bei jedem Loot von Erzen und Pflanzen aktualisiert. 
+Die Anzahl wird nicht immer zuverlässig bei jedem Loot von Erzen und Pflanzen aktualisiert. Spätestens beim schließen eines Händlerfenster wird alles aktualisiert.
