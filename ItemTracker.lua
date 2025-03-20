@@ -21,6 +21,7 @@ local characterName, realm = UnitFullName("player")
 if not realm then
     realm = GetRealmName()
 end
+realm = realm:gsub("%s+", "")  -- Leerzeichen entfernen, da der Server manchmal anders reagiert
 characterID = characterName .. "-" .. realm
 
 -- Hauptframe erstellen
@@ -48,7 +49,7 @@ ItemTracker:SetScript("OnDragStop", function(self)
     -- Abfragen der aktuellen Position
     local point, relativeTo, relativePoint, xOffset, yOffset = self:GetPoint(1)
   
-    -- ToDo Config an andere Position setzen
+    -- Position des Frames in Config speichern
     ItemTrackerConfig[characterID].framePosition = {
         point = point,
         relativePoint = relativePoint,
