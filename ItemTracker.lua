@@ -8,6 +8,14 @@ local GRID_SIZE_Y = 2   -- Anzahl der Zeilen
 local ICON_SIZE = 35    -- Größe der Icons
 local items = {}        -- Tabelle für die Items
 
+-- Qualitätsstufen für die Overlay-Icons
+local atlasNames = {
+    [1] = "Professions-Icon-Quality-Tier1",
+    [2] = "Professions-Icon-Quality-Tier2",
+    [3] = "Professions-Icon-Quality-Tier3"
+}
+
+
 -- SavedVAriables erstellen, wenn sie noch nicht existieren
 if not ItemTrackerGrid then
     ItemTrackerGrid = {}
@@ -60,24 +68,29 @@ end)
 
 ItemTracker:Show()
 
+local function setSlotContent(itemTexture, itemLink, slot, itemID)
+    if itemTexture then
+        slot.icon:SetTexture(itemTexture)
+        local quality = itemLink:match("Quality%-Tier(%d)")
+        if quality then
+            slot.qualityOverlay:SetAtlas(atlasNames[tonumber(quality)])
+            slot.qualityOverlay:Show()
+        else
+            slot.qualityOverlay:SetTexture(nil) -- Kein Overlay wenn keine Qualität zurückgegeben wurde
+            slot.qualityOverlay:Hide()
+        end
+    end
+    slot.count:SetText(GetItemCount(itemID))
+end
+
+
 -- Die Items im Grid aktualisieren
 local function UpdateItemCount()
     for slotName, itemID in pairs(ItemTrackerGrid[characterID]) do
         local slot = _G[slotName]  -- Hole den Slot über den globalen Namensraum
         if slot then
             local itemName, itemLink, _, _, _, _, _, _, _, itemTexture = GetItemInfo(itemID)
-            if itemTexture then
-                slot.icon:SetTexture(itemTexture)
-                local quality = C_TradeSkillUI.GetCraftingReagentQualityByItemInfo(itemLink)
-                if quality then
-                    slot.qualityOverlay:SetTexture("Interface/Crafting/Quality-Icon-Rank" .. quality .. ".blp")
-                    slot.qualityOverlay:Show()
-                else
-                    slot.qualityOverlay:SetTexture(nil) -- Kein Overlay wenn keine Qualität zurückgegeben wurde
-                    slot.qualityOverlay:Hide()
-                end
-            end
-            slot.count:SetText(GetItemCount(itemID))
+            setSlotContent(itemTexture, itemLink, slot, itemID) -- Textur, Text und Quali im Grid schreiben
         end
     end
 end
@@ -89,10 +102,7 @@ local function LoadSavedData()
         local slot = _G[slotName]  -- Hole den Slot über den globalen Namensraum
         if slot then
             local itemName, itemLink, _, _, _, _, _, _, _, itemTexture = GetItemInfo(itemID)
-            if itemTexture then
-                slot.icon:SetTexture(itemTexture)
-            end
-            slot.count:SetText(GetItemCount(itemID))
+            setSlotContent(itemTexture, itemLink, slot, itemID) -- Textur, Text und Quali im Grid schreiben
             items[slot:GetName()] = itemID
         end
     end
@@ -186,6 +196,7 @@ local function CreateGrid()
             slot.qualityOverlay = slot:CreateTexture(nil, "OVERLAY")
             slot.qualityOverlay:SetSize(20, 20) -- Todo: Größe abhängig von Icon machen
             slot.qualityOverlay:SetPoint("TOPLEFT", slot, "TOPLEFT", -5, 5)
+            slot.qualityOverlay:SetAlpha(1) -- Transparenz des Overlays
             slot.qualityOverlay:SetTexture(nil) -- initial leer
             
             -- Tooltip Handler onEnter und onLeave
