@@ -69,7 +69,7 @@ local function UpdateItemCount()
             if itemTexture then
                 slot.icon:SetTexture(itemTexture)
             end
-            slot.count:SetText(GetItemCount(itemID))
+            slot.count:SetText(C_TradeSkillUI.GetCraftingReagentQualityByItemInfo(itemID) .. " " .. GetItemCount(itemID))
         end
     end
 end
