@@ -1,7 +1,7 @@
 ## Interface: 110100
 ## Title: ItemTracker
 ### Notes: Tracks items in your bags and displays them with the found count on a grid.
-### Version: 1.1
+### Version: 1.2
 ### Author: Rob
 
 ## SavedVariables: ItemTrackerGrid, ItemTrackerConfig
