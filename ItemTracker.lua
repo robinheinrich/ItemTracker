@@ -68,8 +68,16 @@ local function UpdateItemCount()
             local itemName, itemLink, _, _, _, _, _, _, _, itemTexture = GetItemInfo(itemID)
             if itemTexture then
                 slot.icon:SetTexture(itemTexture)
+                local quality = C_TradeSkillUI.GetCraftingReagentQualityByItemInfo(itemLink)
+                if quality then
+                    slot.qualityOverlay:SetTexture("Interface/Crafting/Quality-Icon-Rank" .. quality .. ".blp")
+                    slot.qualityOverlay:Show()
+                else
+                    slot.qualityOverlay:SetTexture(nil) -- Kein Overlay wenn keine Qualität zurückgegeben wurde
+                    slot.qualityOverlay:Hide()
+                end
             end
-            slot.count:SetText(C_TradeSkillUI.GetCraftingReagentQualityByItemInfo(itemID) .. " " .. GetItemCount(itemID))
+            slot.count:SetText(GetItemCount(itemID))
         end
     end
 end
@@ -174,6 +182,11 @@ local function CreateGrid()
             slot:EnableMouse(true)
             slot:RegisterForDrag("LeftButton")
             slot:RegisterForClicks("AnyUp")
+
+            slot.qualityOverlay = slot:CreateTexture(nil, "OVERLAY")
+            slot.qualityOverlay:SetSize(20, 20) -- Todo: Größe abhängig von Icon machen
+            slot.qualityOverlay:SetPoint("TOPLEFT", slot, "TOPLEFT", -5, 5)
+            slot.qualityOverlay:SetTexture(nil) -- initial leer
             
             -- Tooltip Handler onEnter und onLeave
             slot:SetScript("OnEnter", function(self)
