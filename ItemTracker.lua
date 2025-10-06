@@ -205,7 +205,7 @@ local function CreateGrid()
                     local itemLink = items[self:GetName()]
                     local itemName = select(1, GetItemInfo(itemLink))
                     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-                    GameTooltip:SetText(itemName or "Kein Item gefunden", 1, 1, 1)
+                    GameTooltip:SetText(SetText(GetItemCount(itemLink)) .. "x " .. itemName or "Kein Item gefunden", 1, 1, 1)
                     GameTooltip:Show()
                 end
             end)
