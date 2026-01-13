@@ -51,7 +51,10 @@ ItemTracker:SetBackdropBorderColor(1, 1, 1, 1)
 ItemTracker:EnableMouse(true)
 ItemTracker:SetMovable(true)
 ItemTracker:RegisterForDrag("LeftButton")
-ItemTracker:SetScript("OnDragStart", ItemTracker.StartMoving)
+-- OnDragStart: Verwende eine anonyme Funktion, die die Methode des Frames aufruft.
+-- Direkter Verweis auf ItemTracker.StartMoving ist nicht zuverlässig, da StartMoving
+-- als Methode über das Frame-Metatable bereitgestellt wird.
+ItemTracker:SetScript("OnDragStart", function(self) self:StartMoving() end)
 ItemTracker:SetScript("OnDragStop", function(self)
     self:StopMovingOrSizing()
     -- Abfragen der aktuellen Position
@@ -201,10 +204,30 @@ local function CreateGrid()
             
             -- Tooltip Handler onEnter und onLeave
             slot:SetScript("OnEnter", function(self)
-                if items[self:GetName()] then  -- Prüfe, ob ein Item zugewiesen ist (oder alternativ ItemTrackerGrid)
-                    local itemLink = items[self:GetName()]
+                -- Hol den gespeicherten Wert (kann Item-Link (string) oder Item-ID (number) sein)
+                local stored = items[self:GetName()]
+                -- Fallback auf SavedVariables, falls items noch nicht initialisiert ist
+                if not stored and ItemTrackerGrid and ItemTrackerGrid[characterID] then
+                    stored = ItemTrackerGrid[characterID][self:GetName()]
+                end
+
+                -- Versuche, aus dem gespeicherten Wert einen gültigen item-hyperlink zu ermitteln
+                local link = nil
+                if stored then
+                    if type(stored) == "string" and string.find(stored, "item:") then
+                        link = stored
+                    else
+                        -- GetItemInfo akzeptiert sowohl itemLink als auch itemID und liefert den hyperlink zurück
+                        local _, gotLink = GetItemInfo(stored)
+                        if gotLink and type(gotLink) == "string" then
+                            link = gotLink
+                        end
+                    end
+                end
+
+                if link then
                     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-                    GameTooltip:SetHyperlink(itemLink)
+                    GameTooltip:SetHyperlink(link)
                     GameTooltip:Show()
                 end
             end)
