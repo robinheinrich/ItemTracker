@@ -1,6 +1,6 @@
 -- Written by: Rob
 -- Description: Ein einfaches Addon, um Items mit der Anzahl in einem Grid anzuzeigen
--- Version: v1.0
+-- Version: v1.1 (Midnight Compatible)
 
 -- Konstanten und Variablen
 local GRID_SIZE_X = 10  -- Anzahl der Spalten
@@ -16,7 +16,7 @@ local atlasNames = {
 }
 
 
--- SavedVAriables erstellen, wenn sie noch nicht existieren
+-- SavedVariables erstellen, wenn sie noch nicht existieren
 if not ItemTrackerGrid then
     ItemTrackerGrid = {}
 end
@@ -24,7 +24,7 @@ if not ItemTrackerConfig then
     ItemTrackerConfig = {}
 end
 
--- CharacerID und Realm für SavedVariables erstellen
+-- CharacterID und Realm für SavedVariables erstellen
 local characterName, realm = UnitFullName("player")
 if not realm then
     realm = GetRealmName()
@@ -51,7 +51,10 @@ ItemTracker:SetBackdropBorderColor(1, 1, 1, 1)
 ItemTracker:EnableMouse(true)
 ItemTracker:SetMovable(true)
 ItemTracker:RegisterForDrag("LeftButton")
-ItemTracker:SetScript("OnDragStart", ItemTracker.StartMoving)
+-- OnDragStart: Verwende eine anonyme Funktion, die die Methode des Frames aufruft.
+-- Direkter Verweis auf ItemTracker.StartMoving ist nicht zuverlässig, da StartMoving
+-- als Methode über das Frame-Metatable bereitgestellt wird.
+ItemTracker:SetScript("OnDragStart", function(self) self:StartMoving() end)
 ItemTracker:SetScript("OnDragStop", function(self)
     self:StopMovingOrSizing()
     -- Abfragen der aktuellen Position
@@ -71,7 +74,7 @@ ItemTracker:Show()
 local function setSlotContent(itemTexture, itemLink, slot, itemID)
     if itemTexture then
         slot.icon:SetTexture(itemTexture)
-        local quality = itemLink:match("Quality%-Tier(%d)")
+        local quality = itemLink and itemLink:match("Quality%-Tier(%d)")
         if quality then
             slot.qualityOverlay:SetAtlas(atlasNames[tonumber(quality)])
             slot.qualityOverlay:Show()
@@ -80,7 +83,7 @@ local function setSlotContent(itemTexture, itemLink, slot, itemID)
             slot.qualityOverlay:Hide()
         end
     end
-    slot.count:SetText(GetItemCount(itemID))
+    slot.count:SetText(GetItemCount(itemID, true) or 0)
 end
 
 
@@ -89,8 +92,10 @@ local function UpdateItemCount()
     for slotName, itemID in pairs(ItemTrackerGrid[characterID]) do
         local slot = _G[slotName]  -- Hole den Slot über den globalen Namensraum
         if slot then
-            local itemName, itemLink, _, _, _, _, _, _, _, itemTexture = GetItemInfo(itemID)
-            setSlotContent(itemTexture, itemLink, slot, itemID) -- Textur, Text und Quali im Grid schreiben
+            local itemName, itemLink, _, _, _, _, _, _, _, itemTexture = C_Item.GetItemInfo(itemID)
+            if itemName then
+                setSlotContent(itemTexture, itemLink, slot, itemID) -- Textur, Text und Quali im Grid schreiben
+            end
         end
     end
 end
@@ -101,9 +106,11 @@ local function LoadSavedData()
     for slotName, itemID in pairs(ItemTrackerGrid[characterID]) do
         local slot = _G[slotName]  -- Hole den Slot über den globalen Namensraum
         if slot then
-            local itemName, itemLink, _, _, _, _, _, _, _, itemTexture = GetItemInfo(itemID)
-            setSlotContent(itemTexture, itemLink, slot, itemID) -- Textur, Text und Quali im Grid schreiben
-            items[slot:GetName()] = itemID
+            local itemName, itemLink, _, _, _, _, _, _, _, itemTexture = C_Item.GetItemInfo(itemID)
+            if itemName then
+                setSlotContent(itemTexture, itemLink, slot, itemID) -- Textur, Text und Quali im Grid schreiben
+                items[slot:GetName()] = itemID
+            end
         end
     end
 end
@@ -112,7 +119,7 @@ end
 -- Events abfangen und verarbeiten
 ItemTracker:SetScript("OnEvent", function(self, event, addonName)
     -- Prüfe, ob das Addon "ItemTracker" geladen wurde
-    if addonName == "ItemTracker" then
+    if event == "ADDON_LOADED" and addonName == "ItemTracker" then
         -- Initialisiere die SavedVariables
         if not ItemTrackerGrid[characterID] then
             ItemTrackerGrid[characterID] = {}
@@ -135,9 +142,11 @@ ItemTracker:SetScript("OnEvent", function(self, event, addonName)
         -- Gespeicherte Daten laden
         LoadSavedData()
 
-    end
     -- Events für UpdateItemCount abfragen
-    if event == "LOOT_OPENED" or event == "LOOT_CLOSED" or event == "MERCHANT_CLOSED" or event == "AUCTION_HOUSE_CLOSED" or event == "BANKFRAME_CLOSED" or event == "TRADE_CLOSED" then
+    elseif event == "LOOT_OPENED" or event == "LOOT_CLOSED" or event == "MERCHANT_CLOSED" or event == "AUCTION_HOUSE_CLOSED" or event == "BANKFRAME_CLOSED" or event == "TRADE_CLOSED" or event == "BAG_UPDATE_DELAYED" then
+        UpdateItemCount()
+    elseif event == "GET_ITEM_INFO_RECEIVED" then
+        -- Item info wurde empfangen, update die Anzeige
         UpdateItemCount()
     end
 end)
@@ -150,12 +159,14 @@ ItemTracker:RegisterEvent("LOOT_CLOSED")
 ItemTracker:RegisterEvent("LOOT_OPENED")
 ItemTracker:RegisterEvent("MERCHANT_CLOSED")
 ItemTracker:RegisterEvent("TRADE_CLOSED")
+ItemTracker:RegisterEvent("BAG_UPDATE_DELAYED")  -- Neues Event für Bag-Updates
+ItemTracker:RegisterEvent("GET_ITEM_INFO_RECEIVED")  -- Für asynchrone Item-Info
 
 --------------------------------------------------------------------
 -- Funktion, um das Item und die Anzahl in das Grid einzufügen
 local function FillButtonWithData(icon, itemLink, slot)
     slot.icon:SetTexture(icon)
-    slot.count:SetText(GetItemCount(itemLink))
+    slot.count:SetText(C_Item.GetItemCount(itemLink, true) or 0)
     -- Speichere den Slot-Eintrag in den SavedVariables
     ItemTrackerGrid[characterID][slot:GetName()] = itemLink
     items[slot:GetName()] = itemLink
@@ -201,10 +212,30 @@ local function CreateGrid()
             
             -- Tooltip Handler onEnter und onLeave
             slot:SetScript("OnEnter", function(self)
-                if items[self:GetName()] then  -- Prüfe, ob ein Item zugewiesen ist (oder alternativ ItemTrackerGrid)
-                    local itemLink = items[self:GetName()]
+                -- Hol den gespeicherten Wert (kann Item-Link (string) oder Item-ID (number) sein)
+                local stored = items[self:GetName()]
+                -- Fallback auf SavedVariables, falls items noch nicht initialisiert ist
+                if not stored and ItemTrackerGrid and ItemTrackerGrid[characterID] then
+                    stored = ItemTrackerGrid[characterID][self:GetName()]
+                end
+
+                -- Versuche, aus dem gespeicherten Wert einen gültigen item-hyperlink zu ermitteln
+                local link = nil
+                if stored then
+                    if type(stored) == "string" and string.find(stored, "item:") then
+                        link = stored
+                    else
+                        -- GetItemInfo akzeptiert sowohl itemLink als auch itemID und liefert den hyperlink zurück
+                        local _, gotLink = C_Item.GetItemInfo(stored)
+                        if gotLink and type(gotLink) == "string" then
+                            link = gotLink
+                        end
+                    end
+                end
+
+                if link then
                     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-                    GameTooltip:SetHyperlink(itemLink)
+                    GameTooltip:SetHyperlink(link)
                     GameTooltip:Show()
                 end
             end)
@@ -220,15 +251,16 @@ local function CreateGrid()
                     self.count:SetText("")
                     items[self:GetName()] = nil
                     ItemTrackerGrid[characterID][self:GetName()] = nil
-                    
+                    self.qualityOverlay:SetTexture(nil)
+                    self.qualityOverlay:Hide()
                 end
             end)
 
             -- Receive Drag Event für die Buttons
             slot:SetScript("OnReceiveDrag", function(self)
-                local cursorType, itemLink = GetCursorInfo()
+                local cursorType, itemID, itemLink = GetCursorInfo()
                 if cursorType == "item" and itemLink then
-                    local itemName, _, _, _, _, _, _, _, _, itemTexture = GetItemInfo(itemLink)
+                    local itemName, _, _, _, _, _, _, _, _, itemTexture = C_Item.GetItemInfo(itemLink)
                     if itemTexture then
                         FillButtonWithData(itemTexture, itemLink, self)
                     end
@@ -243,19 +275,38 @@ CreateGrid()
 
 --------------------------------------------------------------------
 -- Funktion, um die Anzahl eines bestimmten Items anhand der itemID zu ermitteln
-local function GetItemCount(itemID)
+-- WICHTIG: Diese Funktion überschreibt die globale GetItemCount-Funktion!
+-- Besser wäre es, sie umzubenennen (z.B. GetTrackedItemCount)
+local function GetItemCount(itemID, includeBank)
+    -- Nutze die neue C_Container API
     local count = 0
     for bag = 0, NUM_BAG_SLOTS do
-        for slot = 1, GetContainerNumSlots(bag) do
-            local _, itemCount, _, _, _, _, link = GetContainerItemInfo(bag, slot)
-            if link then
-                local _, _, id = string.find(link, "item:(%d+):")
-                if tonumber(id) == itemID then
-                    count = count + itemCount
+        for slot = 1, C_Container.GetContainerNumSlots(bag) do
+            local itemInfo = C_Container.GetContainerItemInfo(bag, slot)
+            if itemInfo and itemInfo.hyperlink then
+                local _, _, id = string.find(itemInfo.hyperlink, "item:(%d+):")
+                if tonumber(id) == tonumber(itemID) then
+                    count = count + itemInfo.stackCount
                 end
             end
         end
     end
+    
+    -- Bank einbeziehen wenn includeBank true ist
+    if includeBank then
+        for bag = NUM_BAG_SLOTS + 1, NUM_BAG_SLOTS + NUM_BANKBAGSLOTS do
+            for slot = 1, C_Container.GetContainerNumSlots(bag) do
+                local itemInfo = C_Container.GetContainerItemInfo(bag, slot)
+                if itemInfo and itemInfo.hyperlink then
+                    local _, _, id = string.find(itemInfo.hyperlink, "item:(%d+):")
+                    if tonumber(id) == tonumber(itemID) then
+                        count = count + itemInfo.stackCount
+                    end
+                end
+            end
+        end
+    end
+    
     return count
 end
 
@@ -292,8 +343,12 @@ SlashCmdList["ITEMTRACKER"] = function(msg)
 
     local settoDefaultSize = string.match(msg, "-ds")
     if settoDefaultSize then
-        ItemTracker:SetSize(ItemTrackerConfig[characterID].DefaultButtonSize * GRID_SIZE_X + 65, ItemTrackerConfig[characterID].DefaultButtonSize * GRID_SIZE_Y + 25)
-        print("Größe auf Standardgröße zurückgesetzt.")
-        ItemTrackerConfig[characterID].iconSize = ItemTrackerConfig[characterID].DefaultButtonSize
+        if ItemTrackerConfig[characterID].DefaultButtonSize then
+            ItemTracker:SetSize(ItemTrackerConfig[characterID].DefaultButtonSize * GRID_SIZE_X + 65, ItemTrackerConfig[characterID].DefaultButtonSize * GRID_SIZE_Y + 25)
+            print("Größe auf Standardgröße zurückgesetzt.")
+            ItemTrackerConfig[characterID].iconSize = ItemTrackerConfig[characterID].DefaultButtonSize
+        else
+            print("Keine Standardgröße gespeichert.")
+        end
     end
 end
