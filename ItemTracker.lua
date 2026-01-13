@@ -203,9 +203,8 @@ local function CreateGrid()
             slot:SetScript("OnEnter", function(self)
                 if items[self:GetName()] then  -- Prüfe, ob ein Item zugewiesen ist (oder alternativ ItemTrackerGrid)
                     local itemLink = items[self:GetName()]
-                    local itemName = select(1, GetItemInfo(itemLink))
                     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-                    GameTooltip:SetText(GetItemCount(itemLink) .. "x " .. itemName or "Kein Item gefunden", 1, 1, 1)
+                    GameTooltip:SetHyperlink(itemLink)
                     GameTooltip:Show()
                 end
             end)
