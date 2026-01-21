@@ -8,6 +8,11 @@ local GRID_SIZE_Y = 2   -- Anzahl der Zeilen
 local ICON_SIZE = 35    -- Größe der Icons
 local items = {}        -- Tabelle für die Items
 
+-- Midnight Kompatibilität: Diese Konstanten wurden in 12.0.0 entfernt
+local NUM_BAG_SLOTS = NUM_BAG_SLOTS or 4  -- Fallback: 4 normale Inventar-Taschen (0-4)
+local NUM_BANKBAGSLOTS = 7  -- 7 Bank-Taschen (Bag IDs 5-11)
+
+
 -- Qualitätsstufen für die Overlay-Icons
 local atlasNames = {
     [1] = "Professions-Icon-Quality-Tier1",
