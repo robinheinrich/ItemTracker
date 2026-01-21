@@ -71,6 +71,43 @@ end)
 
 ItemTracker:Show()
 
+--------------------------------------------------------------------
+-- Funktion, um die Anzahl eines bestimmten Items anhand der itemID zu ermitteln
+-- Diese lokale Funktion wird verwendet, um Items in den Bags zu zählen
+local function GetItemCount(itemID, includeBank)
+    -- Nutze die neue C_Container API
+    local count = 0
+    for bag = 0, NUM_BAG_SLOTS do
+        for slot = 1, C_Container.GetContainerNumSlots(bag) do
+            local itemInfo = C_Container.GetContainerItemInfo(bag, slot)
+            if itemInfo and itemInfo.hyperlink then
+                local _, _, id = string.find(itemInfo.hyperlink, "item:(%d+):")
+                if tonumber(id) == tonumber(itemID) then
+                    count = count + itemInfo.stackCount
+                end
+            end
+        end
+    end
+    
+    -- Bank einbeziehen wenn includeBank true ist
+    if includeBank then
+        for bag = NUM_BAG_SLOTS + 1, NUM_BAG_SLOTS + NUM_BANKBAGSLOTS do
+            for slot = 1, C_Container.GetContainerNumSlots(bag) do
+                local itemInfo = C_Container.GetContainerItemInfo(bag, slot)
+                if itemInfo and itemInfo.hyperlink then
+                    local _, _, id = string.find(itemInfo.hyperlink, "item:(%d+):")
+                    if tonumber(id) == tonumber(itemID) then
+                        count = count + itemInfo.stackCount
+                    end
+                end
+            end
+        end
+    end
+    
+    return count
+end
+
+--------------------------------------------------------------------
 local function setSlotContent(itemTexture, itemLink, slot, itemID)
     if itemTexture then
         slot.icon:SetTexture(itemTexture)
@@ -226,7 +263,7 @@ local function CreateGrid()
                         link = stored
                     else
                         -- GetItemInfo akzeptiert sowohl itemLink als auch itemID und liefert den hyperlink zurück
-                        local _, gotLink = GetItemInfo(stored)
+                        local _, gotLink = C_Item.GetItemInfo(stored)
                         if gotLink and type(gotLink) == "string" then
                             link = gotLink
                         end
@@ -272,43 +309,6 @@ local function CreateGrid()
     end
 end
 CreateGrid()
-
---------------------------------------------------------------------
--- Funktion, um die Anzahl eines bestimmten Items anhand der itemID zu ermitteln
--- WICHTIG: Diese Funktion überschreibt die globale GetItemCount-Funktion!
--- Besser wäre es, sie umzubenennen (z.B. GetTrackedItemCount)
-local function GetItemCount(itemID, includeBank)
-    -- Nutze die neue C_Container API
-    local count = 0
-    for bag = 0, NUM_BAG_SLOTS do
-        for slot = 1, C_Container.GetContainerNumSlots(bag) do
-            local itemInfo = C_Container.GetContainerItemInfo(bag, slot)
-            if itemInfo and itemInfo.hyperlink then
-                local _, _, id = string.find(itemInfo.hyperlink, "item:(%d+):")
-                if tonumber(id) == tonumber(itemID) then
-                    count = count + itemInfo.stackCount
-                end
-            end
-        end
-    end
-    
-    -- Bank einbeziehen wenn includeBank true ist
-    if includeBank then
-        for bag = NUM_BAG_SLOTS + 1, NUM_BAG_SLOTS + NUM_BANKBAGSLOTS do
-            for slot = 1, C_Container.GetContainerNumSlots(bag) do
-                local itemInfo = C_Container.GetContainerItemInfo(bag, slot)
-                if itemInfo and itemInfo.hyperlink then
-                    local _, _, id = string.find(itemInfo.hyperlink, "item:(%d+):")
-                    if tonumber(id) == tonumber(itemID) then
-                        count = count + itemInfo.stackCount
-                    end
-                end
-            end
-        end
-    end
-    
-    return count
-end
 
 
 -- Registriere den Slash-Befehl "/IT"
