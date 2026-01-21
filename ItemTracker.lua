@@ -226,7 +226,7 @@ local function CreateGrid()
                         link = stored
                     else
                         -- GetItemInfo akzeptiert sowohl itemLink als auch itemID und liefert den hyperlink zurück
-                        local _, gotLink = C_Item.GetItemInfo(stored)
+                        local _, gotLink = GetItemInfo(stored)
                         if gotLink and type(gotLink) == "string" then
                             link = gotLink
                         end
