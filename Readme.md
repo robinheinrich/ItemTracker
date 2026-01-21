@@ -12,4 +12,5 @@ Anstelle von 00 kann die Größe der Buttons geändert werden. Standard ist 35. 
 Checkt ob eine Standardgröße gesetzt ist und setzt die Größe des Grids wieder auf Standard zurück.
 
 # Bekannte Probleme
-Die Anzahl wird nicht immer zuverlässig bei jedem Loot von Erzen und Pflanzen aktualisiert. Spätestens beim schließen eines Händlerfenster wird alles aktualisiert.
+- Die Anzahl wird nicht immer zuverlässig bei jedem Loot von Erzen und Pflanzen aktualisiert. Spätestens beim schließen eines Händlerfenster wird alles aktualisiert.
+- Beim ersten Mouseover über ein Item im Grid kann es zu Verzögerungen kommen und das Spiel friert für wenige Augenblicke ein.
