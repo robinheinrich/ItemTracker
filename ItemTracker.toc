@@ -6,3 +6,5 @@
 
 ## SavedVariables: ItemTrackerGrid, ItemTrackerConfig
 ItemTracker.lua
+
+## Dependencies: Blizzard_ItemButton
