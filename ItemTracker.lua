@@ -4,15 +4,15 @@
 -- Konstanten und Variablen
 local GRID_SIZE_X = 10  -- Anzahl der Spalten
 local GRID_SIZE_Y = 2   -- Anzahl der Zeilen
-local ICON_SIZE = 35    -- Größe der Icons
+local ICON_SIZE = 35    -- Default Größe der Icons
 local items = {}        -- Tabelle für die Items
 
--- Midnight Kompatibilität: Diese Konstanten wurden in 12.0.0 entfernt
+-- Midnight Kompatibilität: Manche Konstanten und Methoden wurden in 12.0.0 entfernt
 local NUM_BAG_SLOTS = NUM_BAG_SLOTS or 4  -- Fallback: 4 normale Inventar-Taschen (0-4)
 local NUM_BANKBAGSLOTS = 7  -- 7 Bank-Taschen (Bag IDs 5-11)
 
 
--- Qualitätsstufen für die Overlay-Icons
+-- Item Qualitätsstufen von Berufsmaterial für die Overlay-Icons
 local atlasNames = {
     [1] = "Professions-Icon-Quality-Tier1",
     [2] = "Professions-Icon-Quality-Tier2",
@@ -206,7 +206,7 @@ ItemTracker:RegisterEvent("BAG_UPDATE_DELAYED")  -- Neues Event für Bag-Updates
 ItemTracker:RegisterEvent("GET_ITEM_INFO_RECEIVED")  -- Für asynchrone Item-Info
 
 --------------------------------------------------------------------
--- Funktion, um das Item und die Anzahl in das Grid einzufügen
+-- Item mit Anzahl in das Grid einfügen
 local function FillButtonWithData(icon, itemLink, slot)
     -- Wenn keine Daten übergeben wurden, entferne den Eintrag
     if icon == nil then
