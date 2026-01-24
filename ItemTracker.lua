@@ -310,6 +310,17 @@ local function CreateGrid()
                     ClearCursor()
                 end
             end)
+            
+            -- OnDragStart Event für die Buttons (Item vom Slot nehmen)
+            slot:SetScript("OnDragStart", function(self)
+                local itemLink = items[self:GetName()]
+                if itemLink then
+                    PickupItem(itemLink)              -- Item auf den Cursor legen
+                    items[self:GetName()] = nil       -- Slot leeren
+                    FillButtonWithData(nil, nil, self) -- Icon entfernen
+                    end
+            end)
+
         end
     end
 end
