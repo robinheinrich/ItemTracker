@@ -348,6 +348,10 @@ SlashCmdList["ITEMTRACKER"] = function(msg)
     local newSize = string.match(msg, "-size:(%d+)")
     if newSize then
         newSize = tonumber(newSize)
+        if newSize < 20 or newSize > 100 then
+            print("Ungültiger Größenwert. Bitte einen Wert zwischen 20 und 100 angeben.")
+            return
+        end
         ItemTracker:SetSize(newSize * GRID_SIZE_X + 65, newSize * GRID_SIZE_Y + 25)
         local oldSize = ICON_SIZE
         ICON_SIZE = newSize
