@@ -55,7 +55,7 @@ ItemTracker:SetBackdropBorderColor(1, 1, 1, 1)
 
 ItemTracker:EnableMouse(true)
 ItemTracker:SetMovable(true)
-ItemTracker:RegisterForDrag("LeftButton")
+ItemTracker:RegisterForDrag("RightButton")
 -- OnDragStart: Verwende eine anonyme Funktion, die die Methode des Frames aufruft.
 -- Direkter Verweis auf ItemTracker.StartMoving ist nicht zuverlässig, da StartMoving
 -- als Methode über das Frame-Metatable bereitgestellt wird.
@@ -310,7 +310,7 @@ local function CreateGrid()
                     ClearCursor()
                 end
             end)
-            
+
             -- OnDragStart Event für die Buttons (Item vom Slot nehmen)
             slot:SetScript("OnDragStart", function(self)
                 local itemLink = items[self:GetName()]
