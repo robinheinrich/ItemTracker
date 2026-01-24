@@ -340,7 +340,6 @@ f:SetScript("OnEvent", function()
     LoadSavedData()
 end)
 
-
 -- Registriere den Slash-Befehl "/IT"
 SLASH_ITEMTRACKER1 = "/IT"
 SlashCmdList["ITEMTRACKER"] = function(msg)
