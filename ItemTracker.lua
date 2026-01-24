@@ -220,7 +220,8 @@ local function CreateGrid()
     for row = 1, GRID_SIZE_Y do
         for col = 1, GRID_SIZE_X do
             local index = (row - 1) * GRID_SIZE_X + col
-            local slot = CreateFrame("Button", "ItemSlot" .. index, ItemTracker, "BackdropTemplate")
+            -- OLD: local slot = CreateFrame("Button", "ItemSlot" .. index, ItemTracker, "BackdropTemplate")
+            local slot = CreateFrame("Button", "ItemSlot"..index, ItemTracker, "ItemButtonTemplate")
             slot:SetSize(ICON_SIZE, ICON_SIZE)
             slot:SetPoint("TOPLEFT", (col - 1) * (ICON_SIZE + 5) + 10, -((row - 1) * (ICON_SIZE + 5) + 10))
             
@@ -242,8 +243,8 @@ local function CreateGrid()
             slot.count:SetPoint("BOTTOMRIGHT", slot, "BOTTOMRIGHT", 0, 5)
             slot.count:SetTextColor(1, 1, 1, 1)
             
-            slot:EnableMouse(true)
             slot:RegisterForDrag("LeftButton")
+            slot:EnableMouse(true)
             slot:RegisterForClicks("AnyUp")
 
             slot.qualityOverlay = slot:CreateTexture(nil, "OVERLAY")
