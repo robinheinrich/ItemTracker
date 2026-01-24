@@ -344,7 +344,7 @@ end)
 -- Registriere den Slash-Befehl "/IT"
 SLASH_ITEMTRACKER1 = "/IT"
 SlashCmdList["ITEMTRACKER"] = function(msg)
-    -- ButtonSize Befehl
+    -- FrameSize Befehl
     local newSize = string.match(msg, "-size:(%d+)")
     if newSize then
         newSize = tonumber(newSize)
@@ -375,6 +375,7 @@ SlashCmdList["ITEMTRACKER"] = function(msg)
         print("Ungültiger Befehl. Beispiel: /IT -size:44")
     end
 
+    -- Set to Default Size Befehl
     local settoDefaultSize = string.match(msg, "-ds")
     if settoDefaultSize then
         if ItemTrackerConfig[characterID].DefaultButtonSize then
@@ -384,5 +385,17 @@ SlashCmdList["ITEMTRACKER"] = function(msg)
         else
             print("Keine Standardgröße gespeichert.")
         end
+    end
+
+    -- Alle Items aus dem Grid entfernen
+    local deleteAllItems = string.match(msg, "-del")
+    if deleteAllItems then
+        for i = 1, (GRID_SIZE_X * GRID_SIZE_Y) do
+            local btn = _G["ItemSlot" .. i]
+            if btn then
+                FillButtonWithData(nil, nil, btn)
+            end
+        end
+        print("Alle Items wurden entfernt.")
     end
 end

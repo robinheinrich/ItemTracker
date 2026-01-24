@@ -7,9 +7,11 @@ Es zeigt in einem Grid Gegenstände und deren Anzahl und Qualität im Gepäck an
 
 # Konsolenbefehle
 * /IT -size:00
-Anstelle von 00 kann die Größe der Buttons geändert werden. Standard ist 35. Eingestellte Größe sollte nicht kleiner als 20 sein.
+Anstelle von 00 kann die Größe der Buttons geändert werden. Standard ist 35. Eingestellte Größe kann nicht kleiner als 20 und nicht größer als 100 sein.
 * /IT -ds
 Checkt ob eine Standardgröße gesetzt ist und setzt die Größe des Grids wieder auf Standard zurück.
+* /IT -del
+Löscht alle Items aus dem Grid ohne Nachfrage.
 
 # Bekannte Probleme
 - Die Anzahl wird nicht immer zuverlässig bei jedem Loot von Erzen und Pflanzen aktualisiert. Spätestens beim schließen eines Händlerfenster wird alles aktualisiert.
