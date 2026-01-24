@@ -220,7 +220,7 @@ local function CreateGrid()
     for row = 1, GRID_SIZE_Y do
         for col = 1, GRID_SIZE_X do
             local index = (row - 1) * GRID_SIZE_X + col
-            -- OLD: local slot = CreateFrame("Button", "ItemSlot" .. index, ItemTracker, "BackdropTemplate")
+            -- local slot = CreateFrame("Button", "ItemSlot" .. index, ItemTracker, "BackdropTemplate")
             local slot = CreateFrame("Button", "ItemSlot"..index, ItemTracker, "ItemButtonTemplate")
             slot:SetSize(ICON_SIZE, ICON_SIZE)
             slot:SetPoint("TOPLEFT", (col - 1) * (ICON_SIZE + 5) + 10, -((row - 1) * (ICON_SIZE + 5) + 10))
@@ -325,7 +325,13 @@ local function CreateGrid()
         end
     end
 end
-CreateGrid()
+
+
+local f = CreateFrame("Frame")
+f:RegisterEvent("PLAYER_LOGIN")
+f:SetScript("OnEvent", function()
+    CreateGrid()
+end)
 
 
 -- Registriere den Slash-Befehl "/IT"
