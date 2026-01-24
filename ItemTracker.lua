@@ -1,6 +1,5 @@
 -- Written by: Rob
 -- Description: Ein einfaches Addon, um Items mit der Anzahl in einem Grid anzuzeigen
--- Version: v1.1 (Midnight Compatible)
 
 -- Konstanten und Variablen
 local GRID_SIZE_X = 10  -- Anzahl der Spalten
@@ -125,16 +124,18 @@ local function setSlotContent(itemTexture, itemLink, slot, itemID)
             slot.qualityOverlay:Hide()
         end
     end
-    slot.count:SetText(GetItemCount(itemID, true) or 0)
+    -- OLD: slot.count:SetText(GetItemCount(itemLink, true) or 0)
+    slot.count:SetText(C_Item.GetItemCount(itemLink, true) or 0)
+
 end
 
 
 -- Die Items im Grid aktualisieren
 local function UpdateItemCount()
-    for slotName, itemID in pairs(ItemTrackerGrid[characterID]) do
+    for slotName, itemLink in pairs(ItemTrackerGrid[characterID]) do
         local slot = _G[slotName]  -- Hole den Slot über den globalen Namensraum
         if slot then
-            local itemName, itemLink, _, _, _, _, _, _, _, itemTexture = C_Item.GetItemInfo(itemID)
+            local itemName, _, _, _, _, _, _, _, _, itemTexture = C_Item.GetItemInfo(itemLink)
             if itemName then
                 setSlotContent(itemTexture, itemLink, slot, itemID) -- Textur, Text und Quali im Grid schreiben
             end
@@ -145,13 +146,13 @@ end
 --------------------------------------------------------------------
 -- Funktion, um die gespeicherten Daten zu laden
 local function LoadSavedData()
-    for slotName, itemID in pairs(ItemTrackerGrid[characterID]) do
+    for slotName, itemLink in pairs(ItemTrackerGrid[characterID]) do
         local slot = _G[slotName]  -- Hole den Slot über den globalen Namensraum
         if slot then
-            local itemName, itemLink, _, _, _, _, _, _, _, itemTexture = C_Item.GetItemInfo(itemID)
+            local itemName, _, _, _, _, _, _, _, _, itemTexture = C_Item.GetItemInfo(itemLink)
             if itemName then
                 setSlotContent(itemTexture, itemLink, slot, itemID) -- Textur, Text und Quali im Grid schreiben
-                items[slot:GetName()] = itemID
+                items[slot:GetName()] = itemLink
             end
         end
     end
@@ -207,6 +208,18 @@ ItemTracker:RegisterEvent("GET_ITEM_INFO_RECEIVED")  -- Für asynchrone Item-Inf
 --------------------------------------------------------------------
 -- Funktion, um das Item und die Anzahl in das Grid einzufügen
 local function FillButtonWithData(icon, itemLink, slot)
+    -- Wenn keine Daten übergeben wurden, entferne den Eintrag
+    if icon == nil then
+        ItemTrackerGrid[characterID][slot:GetName()] = nil
+        items[slot:GetName()] = nil
+        slot.icon:SetTexture(nil)
+        slot.count:SetText("")
+        slot.qualityOverlay:SetTexture(nil)
+        slot.qualityOverlay:Hide()
+        return
+    end
+
+    -- Wenn Daten vorhanden sind, fülle den Slot
     slot.icon:SetTexture(icon)
     slot.count:SetText(C_Item.GetItemCount(itemLink, true) or 0)
     -- Speichere den Slot-Eintrag in den SavedVariables
@@ -220,8 +233,7 @@ local function CreateGrid()
     for row = 1, GRID_SIZE_Y do
         for col = 1, GRID_SIZE_X do
             local index = (row - 1) * GRID_SIZE_X + col
-            -- local slot = CreateFrame("Button", "ItemSlot" .. index, ItemTracker, "BackdropTemplate")
-            local slot = CreateFrame("Button", "ItemSlot"..index, ItemTracker, "ItemButtonTemplate")
+            local slot = CreateFrame("Button", "ItemSlot" .. index, ItemTracker, "BackdropTemplate")
             slot:SetSize(ICON_SIZE, ICON_SIZE)
             slot:SetPoint("TOPLEFT", (col - 1) * (ICON_SIZE + 5) + 10, -((row - 1) * (ICON_SIZE + 5) + 10))
             
@@ -245,7 +257,7 @@ local function CreateGrid()
             
             slot:RegisterForDrag("LeftButton")
             slot:EnableMouse(true)
-            slot:RegisterForClicks("AnyUp")
+            slot:RegisterForClicks("LeftButtonUp", "RightButtonUp")
 
             slot.qualityOverlay = slot:CreateTexture(nil, "OVERLAY")
             slot.qualityOverlay:SetSize(20, 20) -- Todo: Größe abhängig von Icon machen
@@ -290,12 +302,7 @@ local function CreateGrid()
             -- OnClick Handler: Entfernen eines Items (Shift + Rechtsklick)
             slot:SetScript("OnClick", function(self, button)
                 if button == "RightButton" and IsShiftKeyDown() then
-                    self.icon:SetTexture(nil)
-                    self.count:SetText("")
-                    items[self:GetName()] = nil
-                    ItemTrackerGrid[characterID][self:GetName()] = nil
-                    self.qualityOverlay:SetTexture(nil)
-                    self.qualityOverlay:Hide()
+                    FillButtonWithData(nil, nil, self) -- Daten entfernen
                 end
             end)
 
@@ -317,9 +324,8 @@ local function CreateGrid()
                 local itemLink = items[self:GetName()]
                 if itemLink then
                     PickupItem(itemLink)              -- Item auf den Cursor legen
-                    items[self:GetName()] = nil       -- Slot leeren
-                    FillButtonWithData(nil, nil, self) -- Icon entfernen
-                    end
+                    FillButtonWithData(nil, nil, self) -- Daten entfernen
+                end
             end)
 
         end
@@ -328,9 +334,10 @@ end
 
 
 local f = CreateFrame("Frame")
-f:RegisterEvent("PLAYER_LOGIN")
+f:RegisterEvent("PLAYER_ENTERING_WORLD")
 f:SetScript("OnEvent", function()
     CreateGrid()
+    LoadSavedData()
 end)
 
 
