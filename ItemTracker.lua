@@ -370,9 +370,6 @@ SlashCmdList["ITEMTRACKER"] = function(msg)
                 btn:SetPoint("TOPLEFT", ItemTracker, "TOPLEFT", (col - 1) * (newSize + 5) + 10, -((row - 1) * (newSize + 5) + 10))
             end
         end
-        
-    else
-        print("Ungültiger Befehl. Beispiel: /IT -size:44")
     end
 
     -- Set to Default Size Befehl
