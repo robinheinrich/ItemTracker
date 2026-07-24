@@ -90,6 +90,11 @@ local function ClearSlot(slot)
     slot.count:SetText("")
     slot.qualityOverlay:SetTexture(nil)
     slot.qualityOverlay:Hide()
+
+    if not InCombatLockdown() then
+        slot:SetAttribute("type", nil)
+        slot:SetAttribute("item", nil)
+    end
 end
 
 local function SetSlotContent(slot, itemLink)
@@ -109,6 +114,12 @@ local function SetSlotContent(slot, itemLink)
     slot.icon:SetTexture(itemTexture)
     slot.count:SetText(C_Item.GetItemCount(itemLink, true) or 0)
 
+    if not InCombatLockdown() then
+        local itemID = C_Item.GetItemInfoInstant(itemLink)
+        slot:SetAttribute("type", itemID and "item" or nil)
+        slot:SetAttribute("item", itemID and ("item:" .. itemID) or nil)
+    end
+
     local quality = type(itemLink) == "string" and itemLink:match("Quality%-Tier(%d)")
     if quality then
         slot.qualityOverlay:SetAtlas(atlasNames[tonumber(quality)])
@@ -121,6 +132,10 @@ end
 
 -- Die Items im Grid aktualisieren
 local function UpdateItemCount()
+    if InCombatLockdown() then -- nur ausführen, wenn der Spieler nicht im Kampf ist
+        return
+    end
+
     local grid = ItemTrackerGrid[characterID] or {}
     for slotName, itemLink in pairs(grid) do
         local slot = _G[slotName]
@@ -197,13 +212,6 @@ local function FillButtonWithData(icon, itemLink, slot)
         return
     end
 
-    -- Wenn Daten vorhanden sind, fülle den Slot
-    if not InCombatLockdown() then
-        local itemID = C_Item.GetItemInfoInstant(itemLink)
-        slot:SetAttribute("type", "item")
-        slot:SetAttribute("item", itemID)
-    end
-
     SetSlotContent(slot, itemLink)
 
     -- Speichere den Slot-Eintrag in den SavedVariables
@@ -242,6 +250,10 @@ local function CreateGrid()
             slot:RegisterForDrag("LeftButton")
             slot:EnableMouse(true)
             slot:RegisterForClicks("AnyUp", "AnyDown")
+            slot:HookScript("OnClick", function(self, button, down)
+ 
+            
+end)
 
             slot.qualityOverlay = slot:CreateTexture(nil, "OVERLAY")
             slot.qualityOverlay:SetSize(20, 20) -- Todo: Größe abhängig von Icon machen
@@ -283,15 +295,14 @@ local function CreateGrid()
                 GameTooltip:Hide()
             end)
 
-            -- OnClick Handler
-            slot:SetScript("OnClick", function(self, button, down)
-
+            slot:HookScript("OnClick", function(self, button, down)
                 -- Entfernen eines Items (Shift + Rechtsklick)
                 if down then return end -- nur beim Loslassen reagieren
                 if button == "RightButton" and IsShiftKeyDown() then
                     FillButtonWithData(nil, nil, self) -- Daten entfernen
                 end
             end)
+
 
             -- Receive Drag Event für die Buttons
             slot:SetScript("OnReceiveDrag", function(self)
