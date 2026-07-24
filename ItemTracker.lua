@@ -8,17 +8,8 @@ local ICON_SIZE = 35.0    -- Default Größe der Icons
 local items = {}        -- Tabelle für die Items
 
 -- Midnight Kompatibilität: Manche Konstanten und Methoden wurden in 12.0.0 entfernt
-local NUM_BAG_SLOTS = NUM_BAG_SLOTS or 4  -- Fallback: 4 normale Inventar-Taschen (0-4)
-local NUM_BANKBAGSLOTS = 7  -- 7 Bank-Taschen (Bag IDs 5-11)
-
-
--- Item Qualitätsstufen von Berufsmaterial für die Overlay-Icons
-local atlasNames = {
-    [1] = "Professions-Icon-Quality-Tier1",
-    [2] = "Professions-Icon-Quality-Tier2",
-    [3] = "Professions-Icon-Quality-Tier3"
-}
-
+-- local NUM_BAG_SLOTS = NUM_BAG_SLOTS or 4  -- Fallback: 4 normale Inventar-Taschen (0-4)
+-- local NUM_BANKBAGSLOTS = 7  -- 7 Bank-Taschen (Bag IDs 5-11)
 
 -- SavedVariables erstellen, wenn sie noch nicht existieren
 if not ItemTrackerGrid then
@@ -120,9 +111,11 @@ local function SetSlotContent(slot, itemLink)
         slot:SetAttribute("item", itemID and ("item:" .. itemID) or nil)
     end
 
-    local quality = type(itemLink) == "string" and itemLink:match("Quality%-Tier(%d)")
+    
+    local quality = C_TradeSkillUI.GetItemReagentQualityInfo(itemLink)
+    
     if quality then
-        slot.qualityOverlay:SetAtlas(atlasNames[tonumber(quality)])
+        slot.qualityOverlay:SetAtlas(quality.icon)
         slot.qualityOverlay:Show()
     else
         slot.qualityOverlay:SetTexture(nil)
