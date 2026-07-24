@@ -184,9 +184,7 @@ end)
 -- Events registrieren
 ItemTracker:RegisterEvent("ADDON_LOADED")
 ItemTracker:RegisterEvent("AUCTION_HOUSE_CLOSED")
-ItemTracker:RegisterEvent("BANKFRAME_CLOSED")
 ItemTracker:RegisterEvent("LOOT_CLOSED")
-ItemTracker:RegisterEvent("LOOT_OPENED")
 ItemTracker:RegisterEvent("MERCHANT_CLOSED")
 ItemTracker:RegisterEvent("TRADE_CLOSED")
 ItemTracker:RegisterEvent("BAG_UPDATE_DELAYED")  -- Neues Event für Bag-Updates
