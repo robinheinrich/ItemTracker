@@ -4,7 +4,7 @@
 -- Konstanten und Variablen
 local GRID_SIZE_X = 10  -- Anzahl der Spalten
 local GRID_SIZE_Y = 2   -- Anzahl der Zeilen
-local ICON_SIZE = 35    -- Default Größe der Icons
+local ICON_SIZE = 35.0    -- Default Größe der Icons
 local items = {}        -- Tabelle für die Items
 
 -- Midnight Kompatibilität: Manche Konstanten und Methoden wurden in 12.0.0 entfernt
@@ -34,7 +34,13 @@ if not realm then
     realm = GetRealmName()
 end
 realm = realm:gsub("%s+", "")  -- Leerzeichen entfernen, da der Server manchmal anders reagiert
-characterID = characterName .. "-" .. realm
+local characterID = characterName .. "-" .. realm
+
+local function EnsureCharacterStorage()
+    ItemTrackerGrid[characterID] = ItemTrackerGrid[characterID] or {}
+    ItemTrackerConfig[characterID] = ItemTrackerConfig[characterID] or {}
+    return ItemTrackerGrid[characterID], ItemTrackerConfig[characterID]
+end
 
 -- Hauptframe erstellen
 local ItemTracker = CreateFrame("Frame", "ItemTrackerFrame", UIParent, "BackdropTemplate")
@@ -63,9 +69,10 @@ ItemTracker:SetScript("OnDragStop", function(self)
     self:StopMovingOrSizing()
     -- Abfragen der aktuellen Position
     local point, relativeTo, relativePoint, xOffset, yOffset = self:GetPoint(1)
+    local _, config = EnsureCharacterStorage()
   
     -- Position des Frames in Config speichern
-    ItemTrackerConfig[characterID].framePosition = {
+    config.framePosition = {
         point = point,
         relativePoint = relativePoint,
         x = xOffset,
@@ -76,69 +83,49 @@ end)
 ItemTracker:Show()
 
 --------------------------------------------------------------------
--- Funktion, um die Anzahl eines bestimmten Items anhand der itemID zu ermitteln
--- Diese lokale Funktion wird verwendet, um Items in den Bags zu zählen
-local function GetItemCount(itemID, includeBank)
-    -- Nutze die neue C_Container API
-    local count = 0
-    for bag = 0, NUM_BAG_SLOTS do
-        for slot = 1, C_Container.GetContainerNumSlots(bag) do
-            local itemInfo = C_Container.GetContainerItemInfo(bag, slot)
-            if itemInfo and itemInfo.hyperlink then
-                local _, _, id = string.find(itemInfo.hyperlink, "item:(%d+):")
-                if tonumber(id) == tonumber(itemID) then
-                    count = count + itemInfo.stackCount
-                end
-            end
-        end
-    end
-    
-    -- Bank einbeziehen wenn includeBank true ist
-    if includeBank then
-        for bag = NUM_BAG_SLOTS + 1, NUM_BAG_SLOTS + NUM_BANKBAGSLOTS do
-            for slot = 1, C_Container.GetContainerNumSlots(bag) do
-                local itemInfo = C_Container.GetContainerItemInfo(bag, slot)
-                if itemInfo and itemInfo.hyperlink then
-                    local _, _, id = string.find(itemInfo.hyperlink, "item:(%d+):")
-                    if tonumber(id) == tonumber(itemID) then
-                        count = count + itemInfo.stackCount
-                    end
-                end
-            end
-        end
-    end
-    
-    return count
+local function ClearSlot(slot)
+    if not slot then return end
+
+    slot.icon:SetTexture(nil)
+    slot.count:SetText("")
+    slot.qualityOverlay:SetTexture(nil)
+    slot.qualityOverlay:Hide()
 end
 
---------------------------------------------------------------------
-local function setSlotContent(itemTexture, itemLink, slot, itemID)
-    if itemTexture then
-        slot.icon:SetTexture(itemTexture)
-        local quality = itemLink and itemLink:match("Quality%-Tier(%d)")
-        if quality then
-            slot.qualityOverlay:SetAtlas(atlasNames[tonumber(quality)])
-            slot.qualityOverlay:Show()
-        else
-            slot.qualityOverlay:SetTexture(nil) -- Kein Overlay wenn keine Qualität zurückgegeben wurde
-            slot.qualityOverlay:Hide()
-        end
+local function SetSlotContent(slot, itemLink)
+    if not slot then return end
+
+    if not itemLink then
+        ClearSlot(slot)
+        return
     end
-    -- OLD: slot.count:SetText(GetItemCount(itemLink, true) or 0)
+
+    local itemName, _, _, _, _, _, _, _, _, itemTexture = C_Item.GetItemInfo(itemLink)
+    if not itemName then
+        ClearSlot(slot)
+        return
+    end
+
+    slot.icon:SetTexture(itemTexture)
     slot.count:SetText(C_Item.GetItemCount(itemLink, true) or 0)
 
+    local quality = type(itemLink) == "string" and itemLink:match("Quality%-Tier(%d)")
+    if quality then
+        slot.qualityOverlay:SetAtlas(atlasNames[tonumber(quality)])
+        slot.qualityOverlay:Show()
+    else
+        slot.qualityOverlay:SetTexture(nil)
+        slot.qualityOverlay:Hide()
+    end
 end
-
 
 -- Die Items im Grid aktualisieren
 local function UpdateItemCount()
-    for slotName, itemLink in pairs(ItemTrackerGrid[characterID]) do
-        local slot = _G[slotName]  -- Hole den Slot über den globalen Namensraum
+    local grid = ItemTrackerGrid[characterID] or {}
+    for slotName, itemLink in pairs(grid) do
+        local slot = _G[slotName]
         if slot then
-            local itemName, _, _, _, _, _, _, _, _, itemTexture = C_Item.GetItemInfo(itemLink)
-            if itemName then
-                setSlotContent(itemTexture, itemLink, slot, itemID) -- Textur, Text und Quali im Grid schreiben
-            end
+            SetSlotContent(slot, itemLink)
         end
     end
 end
@@ -146,14 +133,12 @@ end
 --------------------------------------------------------------------
 -- Funktion, um die gespeicherten Daten zu laden
 local function LoadSavedData()
-    for slotName, itemLink in pairs(ItemTrackerGrid[characterID]) do
-        local slot = _G[slotName]  -- Hole den Slot über den globalen Namensraum
+    local grid = ItemTrackerGrid[characterID] or {}
+    for slotName, itemLink in pairs(grid) do
+        local slot = _G[slotName]
         if slot then
-            local itemName, _, _, _, _, _, _, _, _, itemTexture = C_Item.GetItemInfo(itemLink)
-            if itemName then
-                setSlotContent(itemTexture, itemLink, slot, itemID) -- Textur, Text und Quali im Grid schreiben
-                items[slot:GetName()] = itemLink
-            end
+            SetSlotContent(slot, itemLink)
+            items[slot:GetName()] = itemLink
         end
     end
 end
@@ -163,23 +148,17 @@ end
 ItemTracker:SetScript("OnEvent", function(self, event, addonName)
     -- Prüfe, ob das Addon "ItemTracker" geladen wurde
     if event == "ADDON_LOADED" and addonName == "ItemTracker" then
-        -- Initialisiere die SavedVariables
-        if not ItemTrackerGrid[characterID] then
-            ItemTrackerGrid[characterID] = {}
-        end
-        if not ItemTrackerConfig[characterID] then
-            ItemTrackerConfig[characterID] = {}
-        end
+        local _, config = EnsureCharacterStorage()
         
         -- Icon Size laden
-        if ItemTrackerConfig[characterID].iconSize then
-            ICON_SIZE = ItemTrackerConfig[characterID].iconSize
+        if config.iconSize then
+            ICON_SIZE = config.iconSize
         end
 
         -- Position des Frames laden
-        if ItemTrackerConfig[characterID].framePosition then
+        if config.framePosition then
             ItemTracker:ClearAllPoints()
-            ItemTracker:SetPoint(ItemTrackerConfig[characterID].framePosition.point, UIParent, ItemTrackerConfig[characterID].framePosition.relativePoint, ItemTrackerConfig[characterID].framePosition.x, ItemTrackerConfig[characterID].framePosition.y)
+            ItemTracker:SetPoint(config.framePosition.point, UIParent, config.framePosition.relativePoint, config.framePosition.x, config.framePosition.y)
         end
 
         -- Gespeicherte Daten laden
@@ -208,23 +187,28 @@ ItemTracker:RegisterEvent("GET_ITEM_INFO_RECEIVED")  -- Für asynchrone Item-Inf
 --------------------------------------------------------------------
 -- Item mit Anzahl in das Grid einfügen
 local function FillButtonWithData(icon, itemLink, slot)
+    local slotName = slot:GetName()
+
     -- Wenn keine Daten übergeben wurden, entferne den Eintrag
-    if icon == nil then
-        ItemTrackerGrid[characterID][slot:GetName()] = nil
-        items[slot:GetName()] = nil
-        slot.icon:SetTexture(nil)
-        slot.count:SetText("")
-        slot.qualityOverlay:SetTexture(nil)
-        slot.qualityOverlay:Hide()
+    if icon == nil or not itemLink then
+        ItemTrackerGrid[characterID][slotName] = nil
+        items[slotName] = nil
+        ClearSlot(slot)
         return
     end
 
     -- Wenn Daten vorhanden sind, fülle den Slot
-    slot.icon:SetTexture(icon)
-    slot.count:SetText(C_Item.GetItemCount(itemLink, true) or 0)
+    if not InCombatLockdown() then
+        local itemID = C_Item.GetItemInfoInstant(itemLink)
+        slot:SetAttribute("type", "item")
+        slot:SetAttribute("item", itemID)
+    end
+
+    SetSlotContent(slot, itemLink)
+
     -- Speichere den Slot-Eintrag in den SavedVariables
-    ItemTrackerGrid[characterID][slot:GetName()] = itemLink
-    items[slot:GetName()] = itemLink
+    ItemTrackerGrid[characterID][slotName] = itemLink
+    items[slotName] = itemLink
 end
 
 --------------------------------------------------------------------
@@ -233,7 +217,7 @@ local function CreateGrid()
     for row = 1, GRID_SIZE_Y do
         for col = 1, GRID_SIZE_X do
             local index = (row - 1) * GRID_SIZE_X + col
-            local slot = CreateFrame("Button", "ItemSlot" .. index, ItemTracker, "BackdropTemplate")
+            local slot = CreateFrame("Button", "ItemSlot" .. index, ItemTracker, "BackdropTemplate, SecureActionButtonTemplate")
             slot:SetSize(ICON_SIZE, ICON_SIZE)
             slot:SetPoint("TOPLEFT", (col - 1) * (ICON_SIZE + 5) + 10, -((row - 1) * (ICON_SIZE + 5) + 10))
             
@@ -257,7 +241,7 @@ local function CreateGrid()
             
             slot:RegisterForDrag("LeftButton")
             slot:EnableMouse(true)
-            slot:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+            slot:RegisterForClicks("AnyUp", "AnyDown")
 
             slot.qualityOverlay = slot:CreateTexture(nil, "OVERLAY")
             slot.qualityOverlay:SetSize(20, 20) -- Todo: Größe abhängig von Icon machen
@@ -299,8 +283,11 @@ local function CreateGrid()
                 GameTooltip:Hide()
             end)
 
-            -- OnClick Handler: Entfernen eines Items (Shift + Rechtsklick)
-            slot:SetScript("OnClick", function(self, button)
+            -- OnClick Handler
+            slot:SetScript("OnClick", function(self, button, down)
+
+                -- Entfernen eines Items (Shift + Rechtsklick)
+                if down then return end -- nur beim Loslassen reagieren
                 if button == "RightButton" and IsShiftKeyDown() then
                     FillButtonWithData(nil, nil, self) -- Daten entfernen
                 end
@@ -308,6 +295,11 @@ local function CreateGrid()
 
             -- Receive Drag Event für die Buttons
             slot:SetScript("OnReceiveDrag", function(self)
+                if InCombatLockdown() then
+                    -- Wenn der Spieler im Kampf ist, kann das Drag & Drop nicht durchgeführt werden
+                    print("Du kannst keine Items während des Kampfes ändern.")
+                    return
+                end
                 local cursorType, itemID, itemLink = GetCursorInfo()
                 if cursorType == "item" and itemLink then
                     local itemName, _, _, _, _, _, _, _, _, itemTexture = C_Item.GetItemInfo(itemLink)
@@ -323,7 +315,7 @@ local function CreateGrid()
             slot:SetScript("OnDragStart", function(self)
                 local itemLink = items[self:GetName()]
                 if itemLink then
-                    PickupItem(itemLink)              -- Item auf den Cursor legen
+                    C_Item.PickupItem(itemLink)              -- Item auf den Cursor legen
                     FillButtonWithData(nil, nil, self) -- Daten entfernen
                 end
             end)
@@ -344,10 +336,10 @@ end)
 SLASH_ITEMTRACKER1 = "/IT"
 SlashCmdList["ITEMTRACKER"] = function(msg)
     -- FrameSize Befehl
-    local newSize = string.match(msg, "-size:(%d+)")
-    if newSize then
-        newSize = tonumber(newSize)
-        if newSize < 20 or newSize > 100 then
+    local rawSize = string.match(msg, "-size:(%d+)")
+    if rawSize then
+        local newSize = tonumber(rawSize)
+        if not newSize or newSize < 20 or newSize > 100 then
             print("Ungültiger Größenwert. Bitte einen Wert zwischen 20 und 100 angeben.")
             return
         end
