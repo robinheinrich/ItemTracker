@@ -1,10 +1,9 @@
 ## Interface: 120000
 ## Title: ItemTracker
 ### Notes: Tracks items in your bags and displays them with the found count on a grid. Usable items can be used directly from the grid with a leftclick.
-### Version: 1.5
+### Version: 1.6
 ### Author: Rob
 
 ## SavedVariables: ItemTrackerGrid, ItemTrackerConfig
 ItemTracker.lua
 
-## Dependencies: Blizzard_ItemButton
